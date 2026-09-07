@@ -1,0 +1,52 @@
+:root {
+    --bg-body: #0d1117;
+    --card-bg: #161b22;
+    --card-border: #30363d;
+    --text-main: #f0f6fc;
+    --text-muted: #8b949e;
+    --primary-accent: #2f81f7;
+    --success-gradient: linear-gradient(135deg, #2ea043 0%, #238636 100%);
+    --danger-gradient: linear-gradient(135deg, #da3633 0%, #b62324 100%);
+    --blue-gradient: linear-gradient(135deg, #1f6feb 0%, #1158c7 100%);
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+}
+
+.custom-navbar {
+    background-color: rgba(22, 27, 34, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.metric-card {
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.bg-income { background: var(--success-gradient); }
+.bg-expense { background: var(--danger-gradient); }
+.bg-balance { background: var(--blue-gradient); }
+
+.action-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    border-radius: 14px;
+    padding: 16px;
+    transition: all 0.2s;
+}
+.action-btn:hover {
+    background-color: #21262d;
+    border-color: var(--primary-accent);
+    color: #ffffff;
+    transform: translateY(-2px);
+}
