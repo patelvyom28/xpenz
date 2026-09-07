@@ -50,3 +50,30 @@ body {
     color: #ffffff;
     transform: translateY(-2px);
 }
+/* Modal Inputs & Placeholder Visibility Fix */
+.modal-content input.form-control,
+.modal-content textarea.form-control {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border: 1px solid #334155 !important;
+}
+
+.modal-content input.form-control:focus,
+.modal-content textarea.form-control:focus {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Bright Placeholder Text */
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+}
+
+/* Date Input Icon Color Fix */
+.modal-content input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
