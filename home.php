@@ -1,160 +1,108 @@
 <?php
 session_start();
+require_once 'config/db.php';
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: auth/login.php");
-    exit;
+    exit();
 }
 
-require_once 'config/db.php';
-$user_id   = $_SESSION['user_id'];
-$user_name = $_SESSION['user_name'];
+$user_id = $_SESSION['user_id'];
 
-// Calculate Total Income
-$stmt_income = $pdo->prepare("SELECT SUM(amount) AS total_income FROM transactions WHERE user_id = ? AND type = 'income'");
-$stmt_income->execute([$user_id]);
-$income_data = $stmt_income->fetch();
-$total_income = $income_data['total_income'] ?? 0;
+// Fetch Totals
+$stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'income'");
+$stmt->execute([':user_id' => $user_id]);
+$total_income = $stmt->fetch()['total'] ?? 0;
 
-// Calculate Total Expenses
-$stmt_expense = $pdo->prepare("SELECT SUM(amount) AS total_expense FROM transactions WHERE user_id = ? AND type = 'expense'");
-$stmt_expense->execute([$user_id]);
-$expense_data = $stmt_expense->fetch();
-$total_expense = $expense_data['total_expense'] ?? 0;
+$stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'expense'");
+$stmt->execute([':user_id' => $user_id]);
+$total_expense = $stmt->fetch()['total'] ?? 0;
 
-// Net Balance
 $net_balance = $total_income - $total_expense;
-
-include 'includes/header.php';
 ?>
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - XPenz</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
 
-<!-- Welcome Banner -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold text-white mb-1">Welcome back, <?= htmlspecialchars($user_name); ?>! 👋</h3>
-        <p class="text-secondary small mb-0">Here is your real-time financial summary.</p>
-    </div>
-    <a href="auth/logout.php" class="btn btn-outline-danger btn-sm rounded-3">
-        <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-    </a>
-</div>
-
-<!-- Dynamic Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="metric-card bg-income p-4 text-white shadow-sm">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-uppercase fw-semibold opacity-75 small">Total Income</span>
-                <i class="fa-solid fa-arrow-down-left text-white-50 fs-4"></i>
-            </div>
-            <h2 class="fw-bold mb-0">₹ <?= number_format($total_income, 2); ?></h2>
+<div class="container py-4">
+    <!-- Navbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <img src="assets/images/logo.png" alt="XPenz Logo" style="height: 40px;">
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-dark border border-secondary p-2"><i class="fa-solid fa-users me-1"></i> Family Workspace</span>
+            <span class="badge bg-primary rounded-circle p-2 fs-6">VP</span>
+            <a href="auth/logout.php" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</a>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="metric-card bg-expense p-4 text-white shadow-sm">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-uppercase fw-semibold opacity-75 small">Total Expenses</span>
-                <i class="fa-solid fa-arrow-up-right text-white-50 fs-4"></i>
-            </div>
-            <h2 class="fw-bold mb-0">₹ <?= number_format($total_expense, 2); ?></h2>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="metric-card bg-balance p-4 text-white shadow-sm">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-uppercase fw-semibold opacity-75 small">Net Available Balance</span>
-                <i class="fa-solid fa-wallet text-white-50 fs-4"></i>
-            </div>
-            <h2 class="fw-bold mb-0">₹ <?= number_format($net_balance, 2); ?></h2>
-        </div>
-    </div>
+
+    <!-- Welcome Text -->
+<div class="mb-4">
+    <h2>Welcome back, Vyom Patel! 👋</h2>
+    <p class="text-subtle m-0">Here is your real-time financial summary.</p>
 </div>
 
-<!-- Quick Action Buttons -->
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <button class="btn action-btn w-100 text-center" data-bs-toggle="modal" data-bs-target="#incomeModal">
-            <i class="fa-solid fa-circle-plus text-success fa-2x mb-2 d-block"></i>
-            <span class="fw-semibold">Add Income</span>
-        </button>
-    </div>
-    <div class="col-md-6">
-        <button class="btn action-btn w-100 text-center" data-bs-toggle="modal" data-bs-target="#expenseModal">
-            <i class="fa-solid fa-circle-minus text-danger fa-2x mb-2 d-block"></i>
-            <span class="fw-semibold">Add Expense</span>
-        </button>
-    </div>
-</div>
-
-<!-- Add Income Modal -->
-<div class="modal fade" id="incomeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title fw-bold text-success"><i class="fa-solid fa-plus-circle me-2"></i>Add Income</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <!-- Colored Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-success text-white p-3 h-100 border-0 rounded-4">
+                <small class="text-uppercase fw-bold opacity-75">Total Income</small>
+                <h3 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_income, 2); ?></h3>
             </div>
-            <form action="modules/add_transaction.php" method="POST">
-                <div class="modal-body">
-                    <input type="hidden" name="type" value="income">
-                    <div class="mb-3">
-                        <label class="form-label text-light">Amount (₹)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control text-white" required placeholder="e.g. 5000">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-light">Category</label>
-                        <input type="text" name="category" class="form-control text-white" required placeholder="e.g. Salary, Pocket Money, Bonus">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-light">Date</label>
-                        <input type="date" name="transaction_date" class="form-control text-white" value="<?= date('Y-m-d'); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-light">Description (Optional)</label>
-                        <textarea name="description" class="form-control text-white" rows="2" placeholder="e.g. Monthly stipend"></textarea>
-                    </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white p-3 h-100 border-0 rounded-4">
+                <small class="text-uppercase fw-bold opacity-75">Total Expenses</small>
+                <h3 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_expense, 2); ?></h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white p-3 h-100 border-0 rounded-4 position-relative">
+                <small class="text-uppercase fw-bold opacity-75">Net Available Balance</small>
+                <h3 class="mt-2 mb-0 fw-bold">₹ <?= number_format($net_balance, 2); ?></h3>
+                <i class="fa-solid fa-wallet position-absolute end-0 bottom-0 m-3 fs-2 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <a href="modules/add_transaction.php?type=income" class="text-decoration-none">
+                <div class="card card-custom p-4 text-center">
+                    <div class="mb-2"><i class="fa-solid fa-circle-plus text-success fa-2x"></i></div>
+                    <h5 class="text-white m-0 fw-bold">Add Income</h5>
                 </div>
-                <div class="modal-footer border-secondary">
-                    <button type="submit" class="btn btn-success w-100 fw-bold">Save Income</button>
-                </div>
-            </form>
+            </a>
         </div>
+        <div class="col-md-6">
+            <a href="modules/add_transaction.php?type=expense" class="text-decoration-none">
+                <div class="card card-custom p-4 text-center">
+                    <div class="mb-2"><i class="fa-solid fa-circle-minus text-danger fa-2x"></i></div>
+                    <h5 class="text-white m-0 fw-bold">Add Expense</h5>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- History Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="m-0"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Recent History</h4>
+        <a href="modules/transactions.php" class="btn btn-primary">
+            <i class="fa-solid fa-list-check me-1"></i> View All Transactions
+        </a>
     </div>
 </div>
 
-<!-- Add Expense Modal -->
-<div class="modal fade" id="expenseModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title fw-bold text-danger"><i class="fa-solid fa-minus-circle me-2"></i>Add Expense</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="modules/add_transaction.php" method="POST">
-                <div class="modal-body">
-                    <input type="hidden" name="type" value="expense">
-                    <div class="mb-3">
-                        <label class="form-label text-light">Amount (₹)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control text-white" required placeholder="e.g. 250">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-light">Category</label>
-                        <input type="text" name="category" class="form-control text-white" required placeholder="e.g. Food, Fuel, Shopping, Bills">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-light">Date</label>
-                        <input type="date" name="transaction_date" class="form-control text-white" value="<?= date('Y-m-d'); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-light">Description (Optional)</label>
-                        <textarea name="description" class="form-control text-white" rows="2" placeholder="e.g. Dinner with friends"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-secondary">
-                    <button type="submit" class="btn btn-danger w-100 fw-bold">Save Expense</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<?php include 'includes/footer.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
