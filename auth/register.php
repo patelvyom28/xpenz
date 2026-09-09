@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label text-light">Full Name</label>
-                <input type="text" name="name" class="form-control bg-dark text-white border-secondary" required placeholder="Vyom Patel">
+                <input type="text" name="name" class="form-control bg-dark text-white border-secondary" required placeholder="Your Name">
             </div>
             <div class="mb-3">
                 <label class="form-label text-light">Email Address</label>

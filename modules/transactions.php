@@ -123,7 +123,10 @@ try {
                                     </strong>
                                 </td>
                                 <td class="text-center">
-                                    <a href="delete_transaction.php?id=<?= $t['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this transaction?');">
+                                    <a href="edit_transaction.php?id=<?= $t['id']; ?>" class="btn btn-sm btn-outline-warning me-1" title="Edit">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <a href="delete_transaction.php?id=<?= $t['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this transaction?');" title="Delete">
                                         <i class="fa-solid fa-trash"></i>
                                     </a>
                                 </td>
