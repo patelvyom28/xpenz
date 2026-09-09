@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `loans_insurance` (
   `title` VARCHAR(100) NOT NULL,
   `type` ENUM('loan', 'insurance', 'emi') NOT NULL,
   `total_amount` DECIMAL(10,2) NOT NULL,
+  `paid_amount` DECIMAL(10,2) DEFAULT 0.00,
   `monthly_installment` DECIMAL(10,2) NOT NULL,
   `due_day` INT NOT NULL,
   `lender_provider` VARCHAR(100) DEFAULT NULL,

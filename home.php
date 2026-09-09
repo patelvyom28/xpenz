@@ -2,7 +2,6 @@
 session_start();
 require_once 'config/db.php';
 
-// Auth Guard
 if (!isset($_SESSION['user_id'])) {
     header("Location: auth/login.php");
     exit();
@@ -10,19 +9,16 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Fetch Logged-in User Details
 $user_stmt = $pdo->prepare("SELECT name FROM users WHERE id = :user_id");
 $user_stmt->execute([':user_id' => $user_id]);
 $user = $user_stmt->fetch();
 $user_name = !empty($user['name']) ? $user['name'] : 'User';
 
-// Initials Generator
 $words = explode(' ', trim($user_name));
 $initials = count($words) >= 2 
     ? strtoupper(substr($words[0], 0, 1) . substr($words[count($words) - 1], 0, 1))
     : strtoupper(substr($user_name, 0, 2));
 
-// Fetch Totals
 $stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'income'");
 $stmt->execute([':user_id' => $user_id]);
 $total_income = $stmt->fetch()['total'] ?? 0;
@@ -33,12 +29,10 @@ $total_expense = $stmt->fetch()['total'] ?? 0;
 
 $net_balance = $total_income - $total_expense;
 
-// Fetch Today's Transactions
 $recent_stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = :user_id AND DATE(created_at) = CURDATE() ORDER BY created_at DESC, id DESC");
 $recent_stmt->execute([':user_id' => $user_id]);
 $recent_transactions = $recent_stmt->fetchAll();
 
-// Expense Breakdown by Category
 $cat_stmt = $pdo->prepare("SELECT category, SUM(amount) as total FROM transactions WHERE user_id = :user_id AND type = 'expense' GROUP BY category");
 $cat_stmt->execute([':user_id' => $user_id]);
 $categories_data = $cat_stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -60,13 +54,11 @@ foreach ($categories_data as $row) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <div class="container py-4">
-    <!-- Navbar -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center gap-2">
             <img src="assets/images/logo.png" alt="XPenz Logo" style="height: 40px;">
@@ -78,21 +70,20 @@ foreach ($categories_data as $row) {
         </div>
     </div>
 
-    <!-- Quick Module Shortcuts -->
+    <!-- Quick Shortcuts with Loans Link -->
     <div class="d-flex gap-2 mb-4 flex-wrap">
         <a href="home.php" class="btn btn-sm btn-primary"><i class="fa-solid fa-house me-1"></i> Dashboard</a>
         <a href="modules/transactions.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-list-check me-1"></i> Transactions</a>
         <a href="modules/subscriptions.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-calendar-check me-1"></i> Subscriptions & Bills</a>
         <a href="modules/goals.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-bullseye me-1"></i> Savings Goals</a>
+        <a href="modules/loans.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-building-columns me-1"></i> Loans & Insurance</a>
     </div>
 
-    <!-- Welcome Text -->
     <div class="mb-4">
         <h2>Welcome back, <?= htmlspecialchars($user_name) ?>! 👋</h2>
         <p class="text-subtle m-0">Here is your real-time financial summary.</p>
     </div>
 
-    <!-- Summary Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card bg-success text-white p-3 h-100 border-0 rounded-4">
@@ -115,7 +106,6 @@ foreach ($categories_data as $row) {
         </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <a href="modules/add_transaction.php?type=income" class="text-decoration-none">
@@ -135,7 +125,6 @@ foreach ($categories_data as $row) {
         </div>
     </div>
 
-    <!-- Visual Analytics Section -->
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card card-custom p-3 h-100">
@@ -155,7 +144,6 @@ foreach ($categories_data as $row) {
         </div>
     </div>
 
-    <!-- Today's Activity Header with Button -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="m-0 text-white"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Today's Activity</h4>
         <a href="modules/transactions.php" class="btn btn-primary">
@@ -163,7 +151,6 @@ foreach ($categories_data as $row) {
         </a>
     </div>
 
-    <!-- Today's Activity Table -->
     <div class="card card-custom p-3">
         <div class="table-responsive">
             <table class="table table-dark-custom table-hover align-middle m-0">
