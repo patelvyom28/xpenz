@@ -108,6 +108,7 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
     <div class="d-flex justify-content-between align-items-center mb-4 no-print">
         <h2><i class="fa-solid fa-receipt me-2 text-primary"></i>Transaction History</h2>
         <div class="d-flex gap-2">
+            <a href="import_csv.php" class="btn btn-outline-success btn-sm"><i class="fa-solid fa-file-import me-1"></i> Import CSV</a>
             <a href="transactions.php?export=csv&<?= http_build_query($_GET) ?>" class="btn btn-success btn-sm"><i class="fa-solid fa-file-excel me-1"></i> Export CSV</a>
             <button onclick="window.print()" class="btn btn-primary btn-sm"><i class="fa-solid fa-print me-1"></i> Print / Save PDF</button>
             <a href="../home.php" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-arrow-left me-1"></i> Dashboard</a>
