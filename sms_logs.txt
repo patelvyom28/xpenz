@@ -28,3 +28,6 @@
 [2026-09-10 17:15:49] SMS Sent to Guest Mobile: Hello Jasoda Patel, your subscription 'Mobile' of ₹349.00 is due today (2026-09-10). - XPenz Tracker
 [2026-09-10 17:15:51] SMS Sent to Guest Mobile: Hello Vyom Patel, your subscription 'recharge' of ₹349.00 is due today (2026-09-10). - XPenz Tracker
 [2026-09-10 17:15:51] SMS Sent to Guest Mobile: Hello Jasoda Patel, your subscription 'Mobile' of ₹349.00 is due today (2026-09-10). - XPenz Tracker
+[2026-09-10 18:21:24] SMS Triggered for Guest Mobile: Hello Vyom Patel, your subscription 'recharge' of ₹349.00 is due today (2026-09-10). - XPenz Tracker
+[2026-09-10 18:21:24] SMS Triggered for Guest Mobile: Hello Jasoda Patel, your subscription 'Mobile' of ₹349.00 is due today (2026-09-10). - XPenz Tracker
+[2026-09-10 18:41:07] SMS Triggered for 9712515799: Hello Vyom Patel, your subscription 'recharge' of ₹349.00 is due today (2026-09-10). - XPenz Tracker
