@@ -10,18 +10,18 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Handle Monthly Budget Update
+// Handle Monthly Budget Limit Updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_budget'])) {
     $new_budget = floatval($_POST['monthly_budget']);
     $u_stmt = $pdo->prepare("UPDATE users SET monthly_budget = :budget WHERE id = :user_id");
     $u_stmt->execute([':budget' => $new_budget, ':user_id' => $user_id]);
-    $_SESSION['msg'] = "Monthly budget updated successfully!";
+    $_SESSION['msg'] = "Monthly budget limit updated successfully!";
     $_SESSION['msg_type'] = "success";
     header("Location: home.php");
     exit();
 }
 
-// Fetch User Info
+// Fetch User Profile
 $user_stmt = $pdo->prepare("SELECT name, monthly_budget FROM users WHERE id = :user_id");
 $user_stmt->execute([':user_id' => $user_id]);
 $user = $user_stmt->fetch();
@@ -33,30 +33,30 @@ $initials = count($words) >= 2
     ? strtoupper(substr($words[0], 0, 1) . substr($words[count($words) - 1], 0, 1))
     : strtoupper(substr($user_name, 0, 2));
 
-// Total Income & Expense
+// Aggregate Totals
 $stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'income'");
 $stmt->execute([':user_id' => $user_id]);
-$total_income = $stmt->fetch()['total'] ?? 0;
+$total_income = floatval($stmt->fetch()['total'] ?? 0);
 
 $stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'expense'");
 $stmt->execute([':user_id' => $user_id]);
-$total_expense = $stmt->fetch()['total'] ?? 0;
+$total_expense = floatval($stmt->fetch()['total'] ?? 0);
 
 $net_balance = $total_income - $total_expense;
 
-// CASH VS ONLINE BALANCES
+// Cash Wallet vs Bank/Online Aggregations
 $c_inc = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'income' AND payment_method = 'cash'");
 $c_inc->execute([':user_id' => $user_id]);
-$cash_income = $c_inc->fetch()['total'] ?? 0;
+$cash_income = floatval($c_inc->fetch()['total'] ?? 0);
 
 $c_exp = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'expense' AND payment_method = 'cash'");
 $c_exp->execute([':user_id' => $user_id]);
-$cash_expense = $c_exp->fetch()['total'] ?? 0;
+$cash_expense = floatval($c_exp->fetch()['total'] ?? 0);
 
 $cash_balance = $cash_income - $cash_expense;
 $online_balance = $net_balance - $cash_balance;
 
-// Current Month Expense Calculation for Budget Tracking
+// Current Month Budget Usage
 $m_stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'expense' AND MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())");
 $m_stmt->execute([':user_id' => $user_id]);
 $current_month_expense = floatval($m_stmt->fetch()['total'] ?? 0);
@@ -68,7 +68,7 @@ $recent_stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = :user_i
 $recent_stmt->execute([':user_id' => $user_id]);
 $recent_transactions = $recent_stmt->fetchAll();
 
-// Category Data for Chart
+// Category Data for Visual Charts
 $cat_stmt = $pdo->prepare("SELECT category, SUM(amount) as total FROM transactions WHERE user_id = :user_id AND type = 'expense' GROUP BY category");
 $cat_stmt->execute([':user_id' => $user_id]);
 $categories_data = $cat_stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -80,16 +80,13 @@ foreach ($categories_data as $row) {
     $chart_values[] = (float)$row['total'];
 }
 
-// Time-based Smart Reminder Banners
+// Time-Aware Smart Reminders
 $current_hour = (int)date('H');
-$reminder_text = "";
-$reminder_icon = "fa-clock";
-
 if ($current_hour >= 8 && $current_hour < 12) {
-    $reminder_text = "Morning Reminder: Did you spend any cash or online money on morning tea, breakfast, or travel?";
+    $reminder_text = "Morning Reminder: Did you spend any cash or online money on tea, breakfast, or commuting?";
     $reminder_icon = "fa-sun";
 } elseif ($current_hour >= 12 && $current_hour < 17) {
-    $reminder_text = "Afternoon Reminder: Don't forget to log your lunch, petrol, or online UPI transactions!";
+    $reminder_text = "Afternoon Reminder: Don't forget to record lunch, petrol, or online UPI expenses!";
     $reminder_icon = "fa-utensils";
 } else {
     $reminder_text = "Evening Reconciliation Check: Verify your Cash Wallet and UPI balances before ending your day.";
@@ -119,7 +116,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
                 <i class="fa-solid fa-sliders me-1"></i> Budget Limit
             </button>
             <span class="badge bg-dark border border-secondary p-2"><i class="fa-solid fa-users me-1"></i> Family Workspace</span>
-            <span class="badge bg-primary rounded-circle p-2 fs-6" style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;"><?= htmlspecialchars($initials) ?></span>
+            <span class="badge bg-primary rounded-circle p-2 fs-6 avatar-badge"><?= htmlspecialchars($initials) ?></span>
             <a href="auth/logout.php" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</a>
         </div>
     </div>
@@ -132,7 +129,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
         <?php unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
     <?php endif; ?>
 
-    <!-- Navigation Shortcuts -->
+    <!-- Navigation Bar -->
     <div class="d-flex gap-2 mb-4 flex-wrap">
         <a href="home.php" class="btn btn-sm btn-primary"><i class="fa-solid fa-house me-1"></i> Dashboard</a>
         <a href="modules/transactions.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-list-check me-1"></i> Transactions</a>
@@ -143,7 +140,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
         <a href="modules/pnl_statement.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-file-invoice-dollar me-1"></i> P&L Statement</a>
     </div>
 
-    <!-- Smart Daily Expense Reminder Banner -->
+    <!-- Time-Aware Smart Expense Banner -->
     <div class="alert alert-info d-flex align-items-center justify-content-between rounded-4 mb-4" role="alert">
         <div class="d-flex align-items-center gap-3">
             <i class="fa-solid <?= $reminder_icon ?> fs-3 text-info"></i>
@@ -151,10 +148,10 @@ if ($current_hour >= 8 && $current_hour < 12) {
                 <strong>Smart Expense Alert:</strong> <?= $reminder_text ?>
             </div>
         </div>
-        <button id="enableNotifyBtn" onclick="requestNotification()" class="btn btn-sm btn-outline-info text-nowrap"><i class="fa-solid fa-bell me-1"></i> Enable Push Alerts</button>
+        <button id="enableNotifyBtn" onclick="requestNotification()" class="btn btn-sm btn-outline-info text-nowrap"><i class="fa-solid fa-bell me-1"></i> Trigger Push Alert</button>
     </div>
 
-    <!-- Smart Budget Alert Banner -->
+    <!-- Monthly Budget Warning Banners -->
     <?php if ($monthly_budget > 0): ?>
         <?php if ($current_month_expense > $monthly_budget): ?>
             <div class="alert alert-danger d-flex align-items-center gap-3 rounded-4 mb-4" role="alert">
@@ -167,7 +164,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
             <div class="alert alert-warning d-flex align-items-center gap-3 rounded-4 mb-4 text-dark" role="alert">
                 <i class="fa-solid fa-circle-exclamation fs-3"></i>
                 <div>
-                    <strong>Budget Warning!</strong> You have used <strong><?= $budget_percent ?>%</strong> of your monthly budget (₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?>).
+                    <strong>Budget Warning!</strong> You have used <strong><?= $budget_percent ?>%</strong> of your monthly budget limit (₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?>).
                 </div>
             </div>
         <?php endif; ?>
@@ -176,7 +173,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <div class="mb-4 d-flex justify-content-between align-items-end">
         <div>
             <h2>Welcome back, <?= htmlspecialchars($user_name) ?>! 👋</h2>
-            <p class="text-subtle m-0">Here is your real-time financial summary & wallet tracking.</p>
+            <p class="text-subtle m-0">Real-time wallet balance and transaction dashboard.</p>
         </div>
         <?php if ($monthly_budget > 0): ?>
             <div class="text-end">
@@ -189,7 +186,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
         <?php endif; ?>
     </div>
 
-    <!-- Summary Cards (Including Cash vs Online Split) -->
+    <!-- Overview Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card bg-success text-white p-3 h-100 border-0 rounded-4">
@@ -236,11 +233,12 @@ if ($current_hour >= 8 && $current_hour < 12) {
         </div>
     </div>
 
+    <!-- Dynamic Chart Section -->
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card card-custom p-3 h-100">
                 <h5 class="text-white mb-3"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Expense Breakdown</h5>
-                <div style="height: 220px; position: relative;" class="d-flex justify-content-center">
+                <div class="chart-container d-flex justify-content-center">
                     <canvas id="expenseChart"></canvas>
                 </div>
             </div>
@@ -248,13 +246,14 @@ if ($current_hour >= 8 && $current_hour < 12) {
         <div class="col-md-6">
             <div class="card card-custom p-3 h-100">
                 <h5 class="text-white mb-3"><i class="fa-solid fa-chart-column me-2 text-success"></i>Income vs Expense</h5>
-                <div style="height: 220px; position: relative;">
+                <div class="chart-container">
                     <canvas id="compareChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Recent Activity Table -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="m-0 text-white"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Today's Activity</h4>
         <a href="modules/transactions.php" class="btn btn-primary">
@@ -339,21 +338,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
     window.chartValues = <?= json_encode($chart_values) ?>;
     window.totalIncome = <?= (float)$total_income ?>;
     window.totalExpense = <?= (float)$total_expense ?>;
-
-    function requestNotification() {
-        if ("Notification" in window) {
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    new Notification("XPenz Smart Alert", {
-                        body: "<?= addslashes($reminder_text) ?>",
-                        icon: "assets/images/logo.png"
-                    });
-                    document.getElementById('enableNotifyBtn').innerHTML = '<i class="fa-solid fa-check me-1"></i> Alerts Enabled';
-                    document.getElementById('enableNotifyBtn').classList.replace('btn-outline-info', 'btn-success');
-                }
-            });
-        }
-    }
+    window.reminderText = "<?= addslashes($reminder_text) ?>";
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,64 +1,75 @@
-/* Main Dark Background */
-body { 
-    background-color: #0d1117 !important; 
-    color: #e6edf3 !important; 
-    font-family: Arial, sans-serif; 
-}
-
-/* Custom Dark Cards (Except colored summary cards) */
-.card-custom { 
-    background-color: #161b22 !important; 
-    border: 1px solid #30363d !important; 
-    border-radius: 10px !important; 
+/* Base Application Theme */
+body {
+    background-color: #0d1117 !important;
     color: #e6edf3 !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Table Dark Theme Fix */
-.table, 
-.table-dark-custom { 
-    background-color: #161b22 !important; 
-    color: #e6edf3 !important; 
-}
-
-.table th, 
-.table-dark-custom th { 
-    background-color: #21262d !important; 
-    color: #58a6ff !important; 
-    border-color: #30363d !important; 
-}
-
-.table td, 
-.table-dark-custom td { 
-    background-color: #161b22 !important; 
-    color: #e6edf3 !important; 
-    border-color: #30363d !important; 
-    vertical-align: middle; 
-}
-
-/* Search & Select Input Styling Fix */
-.form-control, 
-.form-select { 
-    background-color: #21262d !important; 
-    border: 1px solid #30363d !important; 
-    color: #ffffff !important; 
-}
-
-/* Placeholder Text Color Fix */
-.form-control::placeholder { 
-    color: #8b949e !important; 
-    opacity: 1; 
-}
-
-/* Focus State */
-.form-control:focus, 
-.form-select:focus { 
-    background-color: #21262d !important; 
-    color: #ffffff !important; 
-    border-color: #58a6ff !important; 
-    box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25) !important; 
-}
-
-/* Subtitle Text Visibility Fix */
 .text-subtle {
     color: #8b949e !important;
+}
+
+.card-custom {
+    background-color: #161b22 !important;
+    border: 1px solid #30363d !important;
+    border-radius: 12px;
+}
+
+.table-dark-custom {
+    color: #c9d1d9 !important;
+}
+
+.table-dark-custom th {
+    background-color: #21262d !important;
+    border-bottom: 2px solid #30363d !important;
+    color: #8b949e !important;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.table-dark-custom td {
+    border-bottom: 1px solid #21262d !important;
+}
+
+.table-dark-custom tr:hover {
+    background-color: #161b22 !important;
+}
+
+.form-control, .form-select {
+    background-color: #0d1117 !important;
+    border: 1px solid #30363d !important;
+    color: #f0f6fc !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #58a6ff !important;
+    box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25) !important;
+}
+
+.progress {
+    background-color: #21262d;
+    border-radius: 10px;
+}
+
+.avatar-badge {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-container {
+    height: 220px;
+    position: relative;
+}
+
+/* Printable PDF/Statement Overrides */
+@media print {
+    .no-print { display: none !important; }
+    body { background: #ffffff !important; color: #000000 !important; }
+    .card-custom { background: none !important; border: none !important; color: #000 !important; }
+    .table { color: #000 !important; }
+    .table-dark-custom th, .table-dark-custom td { color: #000 !important; border-bottom: 1px solid #ccc !important; }
 }
