@@ -1,21 +1,22 @@
 {
-  "short_name": "XPenz",
   "name": "XPenz — Smart Expense Tracker",
+  "short_name": "XPenz",
+  "start_url": "/xpenz/home.php",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
   "icons": [
     {
       "src": "assets/images/logo.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "sizes": "192x192"
+      "purpose": "any maskable"
     },
     {
       "src": "assets/images/logo.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "sizes": "512x512"
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "./home.php",
-  "background_color": "#0d1117",
-  "theme_color": "#0d1117",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }

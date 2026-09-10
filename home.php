@@ -100,11 +100,12 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - XPenz</title>
     
-    <!-- PWA Manifest & Mobile Icons -->
+    <!-- PWA Manifest & Favicon / Mobile Icons -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0d1117">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="apple-touch-icon" href="assets/images/logo.png">
 
     <!-- CSS Links -->
