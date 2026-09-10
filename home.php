@@ -112,6 +112,7 @@ foreach ($categories_data as $row) {
         <a href="modules/goals.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-bullseye me-1"></i> Savings Goals</a>
         <a href="modules/loans.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-building-columns me-1"></i> Loans & Insurance</a>
         <a href="modules/analytics.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-chart-line me-1"></i> Analytics</a>
+        <a href="modules/pnl_statement.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-file-invoice-dollar me-1"></i> P&L Statement</a>
     </div>
 
     <!-- Smart Budget Alert Banner -->
