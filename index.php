@@ -1,5 +1,13 @@
 <?php
+// Maintain active session configuration (30 Days)
+ini_set('session.cookie_lifetime', 2592000);
+ini_set('session.gc_maxlifetime', 2592000);
+session_set_cookie_params(2592000);
+
 session_start();
+
+// Determine target page based on login state
+$redirect_target = isset($_SESSION['user_id']) ? 'home.php' : 'auth/login.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -55,17 +63,18 @@ session_start();
 </div>
 
 <script>
-    // Direct Redirect Logic (No External File Dependency Error)
+    // Automatic smart redirect (Directly to Home Dashboard if logged in)
+    const targetPage = "<?= $redirect_target ?>";
     setTimeout(() => {
-        window.location.href = 'home.php';
+        window.location.href = targetPage;
     }, 1200);
 
-    // Register Service Worker
+    // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js')
-                .then(reg => console.log('PWA Service Worker Registered!', reg))
-                .catch(err => console.error('PWA SW Registration Failed:', err));
+                .then(reg => console.log('XPenz PWA SW Registered!', reg))
+                .catch(err => console.error('PWA SW Registration Error:', err));
         });
     }
 </script>

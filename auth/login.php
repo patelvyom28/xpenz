@@ -1,7 +1,13 @@
 <?php
+// Set session cookie lifetime to 30 days
+ini_set('session.cookie_lifetime', 2592000);
+ini_set('session.gc_maxlifetime', 2592000);
+session_set_cookie_params(2592000);
+
 session_start();
 require_once '../config/db.php';
 
+// If already logged in, redirect directly to dashboard
 if (isset($_SESSION['user_id'])) {
     header("Location: ../home.php");
     exit();
@@ -43,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="theme-color" content="#0d1117">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="../assets/images/logo.png">
     <link rel="apple-touch-icon" href="../assets/images/logo.png">
 
     <!-- CSS Links -->
