@@ -118,3 +118,17 @@ function requestNotification() {
         }
     }
 }
+
+// Automatically trigger smart toast on dashboard load
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(requestNotification, 1000); // Popup opens automatically after 1 second
+});
+
+// Register PWA Service Worker for Mobile/Desktop Installation
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('PWA Service Worker Registered successfully!', reg))
+            .catch(err => console.error('PWA Service Worker Registration Failed:', err));
+    });
+}

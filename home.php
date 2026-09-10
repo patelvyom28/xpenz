@@ -99,6 +99,15 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - XPenz</title>
+    
+    <!-- PWA Manifest & Mobile Icons -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d1117">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/images/logo.png">
+
+    <!-- CSS Links -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -107,17 +116,18 @@ if ($current_hour >= 8 && $current_hour < 12) {
 <body>
 
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 top-header">
         <div class="d-flex align-items-center gap-2">
-            <img src="assets/images/logo.png" alt="XPenz Logo" style="height: 40px;">
+            <img src="assets/images/logo.png" alt="XPenz Logo" style="height: 38px;">
         </div>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#budgetModal">
-                <i class="fa-solid fa-sliders me-1"></i> Budget Limit
+                <i class="fa-solid fa-sliders"></i> <span class="d-none d-md-inline">Budget Limit</span>
             </button>
-            <span class="badge bg-dark border border-secondary p-2"><i class="fa-solid fa-users me-1"></i> Family Workspace</span>
-            <span class="badge bg-primary rounded-circle p-2 fs-6 avatar-badge"><?= htmlspecialchars($initials) ?></span>
-            <a href="auth/logout.php" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</a>
+            <span class="badge bg-dark border border-secondary p-2 d-none d-md-inline-block"><i class="fa-solid fa-users me-1"></i> Family Workspace</span>
+            <span class="badge bg-primary rounded-circle avatar-badge"><?= htmlspecialchars($initials) ?></span>
+            <a href="auth/logout.php" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i></a>
         </div>
     </div>
 
@@ -129,15 +139,15 @@ if ($current_hour >= 8 && $current_hour < 12) {
         <?php unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
     <?php endif; ?>
 
-    <!-- Navigation Bar -->
-    <div class="d-flex gap-2 mb-4 flex-wrap">
+    <!-- Navigation Bar (Scrollable on Mobile) -->
+    <div class="d-flex gap-2 mb-4 flex-wrap nav-scroller">
         <a href="home.php" class="btn btn-sm btn-primary"><i class="fa-solid fa-house me-1"></i> Dashboard</a>
         <a href="modules/transactions.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-list-check me-1"></i> Transactions</a>
-        <a href="modules/subscriptions.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-calendar-check me-1"></i> Subscriptions & Bills</a>
-        <a href="modules/goals.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-bullseye me-1"></i> Savings Goals</a>
-        <a href="modules/loans.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-building-columns me-1"></i> Loans & Insurance</a>
+        <a href="modules/subscriptions.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-calendar-check me-1"></i> Subscriptions</a>
+        <a href="modules/goals.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-bullseye me-1"></i> Goals</a>
+        <a href="modules/loans.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-building-columns me-1"></i> Loans</a>
         <a href="modules/analytics.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-chart-line me-1"></i> Analytics</a>
-        <a href="modules/pnl_statement.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-file-invoice-dollar me-1"></i> P&L Statement</a>
+        <a href="modules/pnl_statement.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-file-invoice-dollar me-1"></i> P&L</a>
     </div>
 
     <!-- Time-Aware Smart Expense Banner -->
@@ -148,7 +158,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
                 <strong>Smart Expense Alert:</strong> <?= $reminder_text ?>
             </div>
         </div>
-        <button id="enableNotifyBtn" onclick="requestNotification()" class="btn btn-sm btn-outline-info text-nowrap"><i class="fa-solid fa-bell me-1"></i> Trigger Push Alert</button>
+        <button id="enableNotifyBtn" onclick="requestNotification()" class="btn btn-sm btn-outline-info text-nowrap mt-2 mt-md-0"><i class="fa-solid fa-bell me-1"></i> Trigger Push Alert</button>
     </div>
 
     <!-- Monthly Budget Warning Banners -->
@@ -157,14 +167,14 @@ if ($current_hour >= 8 && $current_hour < 12) {
             <div class="alert alert-danger d-flex align-items-center gap-3 rounded-4 mb-4" role="alert">
                 <i class="fa-solid fa-triangle-exclamation fs-3"></i>
                 <div>
-                    <strong>Monthly Budget Exceeded!</strong> You have spent <strong>₹<?= number_format($current_month_expense, 2) ?></strong> against your limit of <strong>₹<?= number_format($monthly_budget, 2) ?></strong>.
+                    <strong>Monthly Budget Exceeded!</strong> Spent <strong>₹<?= number_format($current_month_expense, 2) ?></strong> / <strong>₹<?= number_format($monthly_budget, 2) ?></strong>.
                 </div>
             </div>
         <?php elseif ($current_month_expense >= ($monthly_budget * 0.8)): ?>
             <div class="alert alert-warning d-flex align-items-center gap-3 rounded-4 mb-4 text-dark" role="alert">
                 <i class="fa-solid fa-circle-exclamation fs-3"></i>
                 <div>
-                    <strong>Budget Warning!</strong> You have used <strong><?= $budget_percent ?>%</strong> of your monthly budget limit (₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?>).
+                    <strong>Budget Warning!</strong> Used <strong><?= $budget_percent ?>%</strong> of budget limit (₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?>).
                 </div>
             </div>
         <?php endif; ?>
@@ -172,62 +182,55 @@ if ($current_hour >= 8 && $current_hour < 12) {
 
     <div class="mb-4 d-flex justify-content-between align-items-end">
         <div>
-            <h2>Welcome back, <?= htmlspecialchars($user_name) ?>! 👋</h2>
-            <p class="text-subtle m-0">Real-time wallet balance and transaction dashboard.</p>
+            <h2 class="fs-3">Welcome back, <?= htmlspecialchars($user_name) ?>! 👋</h2>
+            <p class="text-subtle m-0 small">Real-time wallet balance & transaction dashboard.</p>
         </div>
         <?php if ($monthly_budget > 0): ?>
             <div class="text-end">
                 <small class="text-subtle d-block">Monthly Budget Used</small>
-                <strong class="text-white fs-5">₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?></strong>
-                <div class="progress mt-1" style="width: 200px; height: 6px;">
+                <strong class="text-white fs-6">₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?></strong>
+                <div class="progress mt-1" style="height: 6px;">
                     <div class="progress-bar <?= $current_month_expense > $monthly_budget ? 'bg-danger' : ($current_month_expense >= ($monthly_budget * 0.8) ? 'bg-warning' : 'bg-success') ?>" role="progressbar" style="width: <?= $budget_percent ?>%"></div>
                 </div>
             </div>
         <?php endif; ?>
     </div>
 
-    <!-- Overview Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card bg-success text-white p-3 h-100 border-0 rounded-4">
-                <small class="text-uppercase fw-bold opacity-75">Total Income</small>
-                <h4 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_income, 2); ?></h4>
-            </div>
+    <!-- Overview Summary Cards (2x2 Grid on Mobile) -->
+    <div class="summary-grid mb-4">
+        <div class="card bg-success text-white border-0 p-3">
+            <small class="text-uppercase fw-bold opacity-75" style="font-size: 0.7rem;">Total Income</small>
+            <h4 class="mt-1 mb-0 fw-bold">₹<?= number_format($total_income, 2); ?></h4>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-danger text-white p-3 h-100 border-0 rounded-4">
-                <small class="text-uppercase fw-bold opacity-75">Total Expenses</small>
-                <h4 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_expense, 2); ?></h4>
-            </div>
+        <div class="card bg-danger text-white border-0 p-3">
+            <small class="text-uppercase fw-bold opacity-75" style="font-size: 0.7rem;">Total Expense</small>
+            <h4 class="mt-1 mb-0 fw-bold">₹<?= number_format($total_expense, 2); ?></h4>
         </div>
-        <div class="col-md-3">
-            <div class="card card-custom p-3 h-100 border-start border-4 border-warning rounded-4">
-                <small class="text-subtle text-uppercase fw-bold">💵 Cash Wallet</small>
-                <h4 class="text-warning mt-2 mb-0 fw-bold">₹ <?= number_format($cash_balance, 2); ?></h4>
-            </div>
+        <div class="card card-custom border-start border-3 border-warning p-3">
+            <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">💵 Cash Wallet</small>
+            <h4 class="text-warning mt-1 mb-0 fw-bold">₹<?= number_format($cash_balance, 2); ?></h4>
         </div>
-        <div class="col-md-3">
-            <div class="card card-custom p-3 h-100 border-start border-4 border-info rounded-4">
-                <small class="text-subtle text-uppercase fw-bold">📱 Bank / Online</small>
-                <h4 class="text-info mt-2 mb-0 fw-bold">₹ <?= number_format($online_balance, 2); ?></h4>
-            </div>
+        <div class="card card-custom border-start border-3 border-info p-3">
+            <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">📱 Bank / Online</small>
+            <h4 class="text-info mt-1 mb-0 fw-bold">₹<?= number_format($online_balance, 2); ?></h4>
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
+    <!-- Quick Action Buttons -->
+    <div class="row g-2 mb-4">
+        <div class="col-6">
             <a href="modules/add_transaction.php?type=income" class="text-decoration-none">
-                <div class="card card-custom p-4 text-center">
-                    <div class="mb-2"><i class="fa-solid fa-circle-plus text-success fa-2x"></i></div>
-                    <h5 class="text-white m-0 fw-bold">Add Income</h5>
+                <div class="card card-custom p-3 text-center">
+                    <div class="mb-1"><i class="fa-solid fa-circle-plus text-success fs-3"></i></div>
+                    <h6 class="text-white m-0 fw-bold">Add Income</h6>
                 </div>
             </a>
         </div>
-        <div class="col-md-6">
+        <div class="col-6">
             <a href="modules/add_transaction.php?type=expense" class="text-decoration-none">
-                <div class="card card-custom p-4 text-center">
-                    <div class="mb-2"><i class="fa-solid fa-circle-minus text-danger fa-2x"></i></div>
-                    <h5 class="text-white m-0 fw-bold">Add Expense</h5>
+                <div class="card card-custom p-3 text-center">
+                    <div class="mb-1"><i class="fa-solid fa-circle-minus text-danger fs-3"></i></div>
+                    <h6 class="text-white m-0 fw-bold">Add Expense</h6>
                 </div>
             </a>
         </div>
@@ -237,7 +240,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card card-custom p-3 h-100">
-                <h5 class="text-white mb-3"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Expense Breakdown</h5>
+                <h6 class="text-white mb-3"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Expense Breakdown</h6>
                 <div class="chart-container d-flex justify-content-center">
                     <canvas id="expenseChart"></canvas>
                 </div>
@@ -245,7 +248,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
         </div>
         <div class="col-md-6">
             <div class="card card-custom p-3 h-100">
-                <h5 class="text-white mb-3"><i class="fa-solid fa-chart-column me-2 text-success"></i>Income vs Expense</h5>
+                <h6 class="text-white mb-3"><i class="fa-solid fa-chart-column me-2 text-success"></i>Income vs Expense</h6>
                 <div class="chart-container">
                     <canvas id="compareChart"></canvas>
                 </div>
@@ -255,9 +258,9 @@ if ($current_hour >= 8 && $current_hour < 12) {
 
     <!-- Recent Activity Table -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="m-0 text-white"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Today's Activity</h4>
-        <a href="modules/transactions.php" class="btn btn-primary">
-            <i class="fa-solid fa-list-check me-1"></i> View All Transactions
+        <h5 class="m-0 text-white fs-6"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Today's Activity</h5>
+        <a href="modules/transactions.php" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-list-check me-1"></i> View All
         </a>
     </div>
 
@@ -314,23 +317,32 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
-                <h5 class="modal-title"><i class="fa-solid fa-sliders text-primary me-2"></i>Set Monthly Budget Limit</h5>
+                <h5 class="modal-title fs-6"><i class="fa-solid fa-sliders text-primary me-2"></i>Set Monthly Budget Limit</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST">
                 <div class="modal-body">
                     <input type="hidden" name="update_budget" value="1">
-                    <label class="form-label text-subtle">Monthly Spending Limit (₹)</label>
+                    <label class="form-label text-subtle small">Monthly Spending Limit (₹)</label>
                     <input type="number" step="0.01" name="monthly_budget" class="form-control mb-2" placeholder="e.g. 15000" value="<?= $monthly_budget ?>" required>
-                    <small class="text-subtle">You will receive warning alerts if your monthly expenses reach 80% or exceed this amount.</small>
+                    <small class="text-subtle opacity-75">You will receive warning alerts if your monthly expenses reach 80% or exceed this amount.</small>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Budget</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Budget</button>
                 </div>
             </form>
         </div>
     </div>
+</div>
+
+<!-- Mobile Fixed Bottom Navigation Bar -->
+<div class="mobile-bottom-nav">
+    <a href="home.php" class="active"><i class="fa-solid fa-house"></i>Home</a>
+    <a href="modules/add_transaction.php?type=expense"><i class="fa-solid fa-circle-minus text-danger"></i>Expense</a>
+    <a href="modules/add_transaction.php?type=income"><i class="fa-solid fa-circle-plus text-success"></i>Income</a>
+    <a href="modules/transactions.php"><i class="fa-solid fa-receipt"></i>History</a>
+    <a href="modules/analytics.php"><i class="fa-solid fa-chart-pie"></i>Analytics</a>
 </div>
 
 <script>
