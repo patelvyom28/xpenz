@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Kolkata');
 require_once 'config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -9,16 +10,30 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-$user_stmt = $pdo->prepare("SELECT name FROM users WHERE id = :user_id");
+// Handle Monthly Budget Update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_budget'])) {
+    $new_budget = floatval($_POST['monthly_budget']);
+    $u_stmt = $pdo->prepare("UPDATE users SET monthly_budget = :budget WHERE id = :user_id");
+    $u_stmt->execute([':budget' => $new_budget, ':user_id' => $user_id]);
+    $_SESSION['msg'] = "Monthly budget updated successfully!";
+    $_SESSION['msg_type'] = "success";
+    header("Location: home.php");
+    exit();
+}
+
+// Fetch User Info
+$user_stmt = $pdo->prepare("SELECT name, monthly_budget FROM users WHERE id = :user_id");
 $user_stmt->execute([':user_id' => $user_id]);
 $user = $user_stmt->fetch();
 $user_name = !empty($user['name']) ? $user['name'] : 'User';
+$monthly_budget = floatval($user['monthly_budget'] ?? 0);
 
 $words = explode(' ', trim($user_name));
 $initials = count($words) >= 2 
     ? strtoupper(substr($words[0], 0, 1) . substr($words[count($words) - 1], 0, 1))
     : strtoupper(substr($user_name, 0, 2));
 
+// Financial Summary Calculations
 $stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'income'");
 $stmt->execute([':user_id' => $user_id]);
 $total_income = $stmt->fetch()['total'] ?? 0;
@@ -28,6 +43,14 @@ $stmt->execute([':user_id' => $user_id]);
 $total_expense = $stmt->fetch()['total'] ?? 0;
 
 $net_balance = $total_income - $total_expense;
+
+// Current Month Expense Calculation for Budget Tracking
+$m_stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'expense' AND MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())");
+$m_stmt->execute([':user_id' => $user_id]);
+$current_month_expense = floatval($m_stmt->fetch()['total'] ?? 0);
+
+// Budget Percentage & Alert Status
+$budget_percent = $monthly_budget > 0 ? min(100, round(($current_month_expense / $monthly_budget) * 100)) : 0;
 
 $recent_stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = :user_id AND DATE(created_at) = CURDATE() ORDER BY created_at DESC, id DESC");
 $recent_stmt->execute([':user_id' => $user_id]);
@@ -46,7 +69,7 @@ foreach ($categories_data as $row) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="gu">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,13 +87,24 @@ foreach ($categories_data as $row) {
             <img src="assets/images/logo.png" alt="XPenz Logo" style="height: 40px;">
         </div>
         <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#budgetModal">
+                <i class="fa-solid fa-sliders me-1"></i> Budget Limit
+            </button>
             <span class="badge bg-dark border border-secondary p-2"><i class="fa-solid fa-users me-1"></i> Family Workspace</span>
             <span class="badge bg-primary rounded-circle p-2 fs-6" style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;"><?= htmlspecialchars($initials) ?></span>
             <a href="auth/logout.php" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</a>
         </div>
     </div>
 
-    <!-- Quick Shortcuts with Loans Link -->
+    <?php if (isset($_SESSION['msg'])): ?>
+        <div class="alert alert-<?= $_SESSION['msg_type']; ?> alert-dismissible fade show mb-4">
+            <?= $_SESSION['msg']; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
+    <?php endif; ?>
+
+    <!-- Navigation Shortcuts -->
     <div class="d-flex gap-2 mb-4 flex-wrap">
         <a href="home.php" class="btn btn-sm btn-primary"><i class="fa-solid fa-house me-1"></i> Dashboard</a>
         <a href="modules/transactions.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-list-check me-1"></i> Transactions</a>
@@ -79,9 +113,39 @@ foreach ($categories_data as $row) {
         <a href="modules/loans.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-building-columns me-1"></i> Loans & Insurance</a>
     </div>
 
-    <div class="mb-4">
-        <h2>Welcome back, <?= htmlspecialchars($user_name) ?>! 👋</h2>
-        <p class="text-subtle m-0">Here is your real-time financial summary.</p>
+    <!-- Smart Budget Alert Banner -->
+    <?php if ($monthly_budget > 0): ?>
+        <?php if ($current_month_expense > $monthly_budget): ?>
+            <div class="alert alert-danger d-flex align-items-center gap-3 rounded-4 mb-4" role="alert">
+                <i class="fa-solid fa-triangle-exclamation fs-3"></i>
+                <div>
+                    <strong>Monthly Budget Exceeded!</strong> You have spent <strong>₹<?= number_format($current_month_expense, 2) ?></strong> against your limit of <strong>₹<?= number_format($monthly_budget, 2) ?></strong>.
+                </div>
+            </div>
+        <?php elseif ($current_month_expense >= ($monthly_budget * 0.8)): ?>
+            <div class="alert alert-warning d-flex align-items-center gap-3 rounded-4 mb-4 text-dark" role="alert">
+                <i class="fa-solid fa-circle-exclamation fs-3"></i>
+                <div>
+                    <strong>Budget Warning!</strong> You have used <strong><?= $budget_percent ?>%</strong> of your monthly budget (₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?>).
+                </div>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <div class="mb-4 d-flex justify-content-between align-items-end">
+        <div>
+            <h2>Welcome back, <?= htmlspecialchars($user_name) ?>! 👋</h2>
+            <p class="text-subtle m-0">Here is your real-time financial summary.</p>
+        </div>
+        <?php if ($monthly_budget > 0): ?>
+            <div class="text-end">
+                <small class="text-subtle d-block">Monthly Budget Used</small>
+                <strong class="text-white fs-5">₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?></strong>
+                <div class="progress mt-1" style="width: 200px; height: 6px;">
+                    <div class="progress-bar <?= $current_month_expense > $monthly_budget ? 'bg-danger' : ($current_month_expense >= ($monthly_budget * 0.8) ? 'bg-warning' : 'bg-success') ?>" role="progressbar" style="width: <?= $budget_percent ?>%"></div>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 
     <div class="row g-3 mb-4">
@@ -189,6 +253,30 @@ foreach ($categories_data as $row) {
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Setting Budget Limit -->
+<div class="modal fade" id="budgetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="fa-solid fa-sliders text-primary me-2"></i>Set Monthly Budget Limit</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="update_budget" value="1">
+                    <label class="form-label text-subtle">Monthly Spending Limit (₹)</label>
+                    <input type="number" step="0.01" name="monthly_budget" class="form-control mb-2" placeholder="e.g. 15000" value="<?= $monthly_budget ?>" required>
+                    <small class="text-subtle">You will receive warning alerts if your monthly expenses reach 80% or exceed this amount.</small>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Budget</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
