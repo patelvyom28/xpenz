@@ -33,7 +33,7 @@ $initials = count($words) >= 2
     ? strtoupper(substr($words[0], 0, 1) . substr($words[count($words) - 1], 0, 1))
     : strtoupper(substr($user_name, 0, 2));
 
-// Financial Summary Calculations
+// Total Income & Expense
 $stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'income'");
 $stmt->execute([':user_id' => $user_id]);
 $total_income = $stmt->fetch()['total'] ?? 0;
@@ -44,28 +44,56 @@ $total_expense = $stmt->fetch()['total'] ?? 0;
 
 $net_balance = $total_income - $total_expense;
 
+// CASH VS ONLINE BALANCES
+$c_inc = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'income' AND payment_method = 'cash'");
+$c_inc->execute([':user_id' => $user_id]);
+$cash_income = $c_inc->fetch()['total'] ?? 0;
+
+$c_exp = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'expense' AND payment_method = 'cash'");
+$c_exp->execute([':user_id' => $user_id]);
+$cash_expense = $c_exp->fetch()['total'] ?? 0;
+
+$cash_balance = $cash_income - $cash_expense;
+$online_balance = $net_balance - $cash_balance;
+
 // Current Month Expense Calculation for Budget Tracking
 $m_stmt = $pdo->prepare("SELECT SUM(amount) AS total FROM transactions WHERE user_id = :user_id AND type = 'expense' AND MONTH(created_at) = MONTH(CURRENT_DATE()) AND YEAR(created_at) = YEAR(CURRENT_DATE())");
 $m_stmt->execute([':user_id' => $user_id]);
 $current_month_expense = floatval($m_stmt->fetch()['total'] ?? 0);
 
-// Budget Percentage & Alert Status
 $budget_percent = $monthly_budget > 0 ? min(100, round(($current_month_expense / $monthly_budget) * 100)) : 0;
 
+// Fetch Today's Activity
 $recent_stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = :user_id AND DATE(created_at) = CURDATE() ORDER BY created_at DESC, id DESC");
 $recent_stmt->execute([':user_id' => $user_id]);
 $recent_transactions = $recent_stmt->fetchAll();
 
+// Category Data for Chart
 $cat_stmt = $pdo->prepare("SELECT category, SUM(amount) as total FROM transactions WHERE user_id = :user_id AND type = 'expense' GROUP BY category");
 $cat_stmt->execute([':user_id' => $user_id]);
 $categories_data = $cat_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $chart_labels = [];
 $chart_values = [];
-
 foreach ($categories_data as $row) {
     $chart_labels[] = $row['category'];
     $chart_values[] = (float)$row['total'];
+}
+
+// Time-based Smart Reminder Banners
+$current_hour = (int)date('H');
+$reminder_text = "";
+$reminder_icon = "fa-clock";
+
+if ($current_hour >= 8 && $current_hour < 12) {
+    $reminder_text = "Morning Reminder: Did you spend any cash or online money on morning tea, breakfast, or travel?";
+    $reminder_icon = "fa-sun";
+} elseif ($current_hour >= 12 && $current_hour < 17) {
+    $reminder_text = "Afternoon Reminder: Don't forget to log your lunch, petrol, or online UPI transactions!";
+    $reminder_icon = "fa-utensils";
+} else {
+    $reminder_text = "Evening Reconciliation Check: Verify your Cash Wallet and UPI balances before ending your day.";
+    $reminder_icon = "fa-moon";
 }
 ?>
 <!DOCTYPE html>
@@ -115,6 +143,17 @@ foreach ($categories_data as $row) {
         <a href="modules/pnl_statement.php" class="btn btn-sm btn-outline-light"><i class="fa-solid fa-file-invoice-dollar me-1"></i> P&L Statement</a>
     </div>
 
+    <!-- Smart Daily Expense Reminder Banner -->
+    <div class="alert alert-info d-flex align-items-center justify-content-between rounded-4 mb-4" role="alert">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fa-solid <?= $reminder_icon ?> fs-3 text-info"></i>
+            <div>
+                <strong>Smart Expense Alert:</strong> <?= $reminder_text ?>
+            </div>
+        </div>
+        <button id="enableNotifyBtn" onclick="requestNotification()" class="btn btn-sm btn-outline-info text-nowrap"><i class="fa-solid fa-bell me-1"></i> Enable Push Alerts</button>
+    </div>
+
     <!-- Smart Budget Alert Banner -->
     <?php if ($monthly_budget > 0): ?>
         <?php if ($current_month_expense > $monthly_budget): ?>
@@ -137,7 +176,7 @@ foreach ($categories_data as $row) {
     <div class="mb-4 d-flex justify-content-between align-items-end">
         <div>
             <h2>Welcome back, <?= htmlspecialchars($user_name) ?>! 👋</h2>
-            <p class="text-subtle m-0">Here is your real-time financial summary.</p>
+            <p class="text-subtle m-0">Here is your real-time financial summary & wallet tracking.</p>
         </div>
         <?php if ($monthly_budget > 0): ?>
             <div class="text-end">
@@ -150,24 +189,30 @@ foreach ($categories_data as $row) {
         <?php endif; ?>
     </div>
 
+    <!-- Summary Cards (Including Cash vs Online Split) -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-success text-white p-3 h-100 border-0 rounded-4">
                 <small class="text-uppercase fw-bold opacity-75">Total Income</small>
-                <h3 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_income, 2); ?></h3>
+                <h4 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_income, 2); ?></h4>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card bg-danger text-white p-3 h-100 border-0 rounded-4">
                 <small class="text-uppercase fw-bold opacity-75">Total Expenses</small>
-                <h3 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_expense, 2); ?></h3>
+                <h4 class="mt-2 mb-0 fw-bold">₹ <?= number_format($total_expense, 2); ?></h4>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-primary text-white p-3 h-100 border-0 rounded-4 position-relative">
-                <small class="text-uppercase fw-bold opacity-75">Net Available Balance</small>
-                <h3 class="mt-2 mb-0 fw-bold">₹ <?= number_format($net_balance, 2); ?></h3>
-                <i class="fa-solid fa-wallet position-absolute end-0 bottom-0 m-3 fs-2 opacity-50"></i>
+        <div class="col-md-3">
+            <div class="card card-custom p-3 h-100 border-start border-4 border-warning rounded-4">
+                <small class="text-subtle text-uppercase fw-bold">💵 Cash Wallet</small>
+                <h4 class="text-warning mt-2 mb-0 fw-bold">₹ <?= number_format($cash_balance, 2); ?></h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom p-3 h-100 border-start border-4 border-info rounded-4">
+                <small class="text-subtle text-uppercase fw-bold">📱 Bank / Online</small>
+                <h4 class="text-info mt-2 mb-0 fw-bold">₹ <?= number_format($online_balance, 2); ?></h4>
             </div>
         </div>
     </div>
@@ -225,6 +270,7 @@ foreach ($categories_data as $row) {
                         <th>Date</th>
                         <th>Title</th>
                         <th>Category</th>
+                        <th>Method</th>
                         <th>Type</th>
                         <th>Amount</th>
                     </tr>
@@ -236,6 +282,11 @@ foreach ($categories_data as $row) {
                                 <td><?= date('d M Y', strtotime($t['created_at'])) ?></td>
                                 <td><?= htmlspecialchars($t['description']) ?></td>
                                 <td><span class="badge bg-secondary"><?= htmlspecialchars($t['category']) ?></span></td>
+                                <td>
+                                    <span class="badge <?= ($t['payment_method'] ?? 'online') === 'cash' ? 'bg-warning text-dark' : 'bg-info text-dark' ?>">
+                                        <?= strtoupper($t['payment_method'] ?? 'online') ?>
+                                    </span>
+                                </td>
                                 <td>
                                     <span class="badge <?= $t['type'] === 'income' ? 'bg-success' : 'bg-danger' ?>">
                                         <?= ucfirst($t['type']) ?>
@@ -250,7 +301,7 @@ foreach ($categories_data as $row) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="text-center py-3 text-muted">No transactions recorded today.</td>
+                            <td colspan="6" class="text-center py-3 text-muted">No transactions recorded today.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -288,6 +339,21 @@ foreach ($categories_data as $row) {
     window.chartValues = <?= json_encode($chart_values) ?>;
     window.totalIncome = <?= (float)$total_income ?>;
     window.totalExpense = <?= (float)$total_expense ?>;
+
+    function requestNotification() {
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification("XPenz Smart Alert", {
+                        body: "<?= addslashes($reminder_text) ?>",
+                        icon: "assets/images/logo.png"
+                    });
+                    document.getElementById('enableNotifyBtn').innerHTML = '<i class="fa-solid fa-check me-1"></i> Alerts Enabled';
+                    document.getElementById('enableNotifyBtn').classList.replace('btn-outline-info', 'btn-success');
+                }
+            });
+        }
+    }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
