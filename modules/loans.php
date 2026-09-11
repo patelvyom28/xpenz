@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Kolkata');
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -86,7 +87,7 @@ $stmt->execute([':user_id' => $user_id]);
 $items = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="gu">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,6 +95,9 @@ $items = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- External Theme Switcher Engine -->
+    <script src="../assets/js/theme.js"></script>
 </head>
 <body>
 
@@ -117,7 +121,7 @@ $items = $stmt->fetchAll();
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card card-custom p-3">
-                <h5 class="text-white mb-3">Add Loan / Insurance / EMI</h5>
+                <h5 class="mb-3 fw-bold">Add Loan / Insurance / EMI</h5>
                 <form method="POST">
                     <input type="hidden" name="add_portfolio" value="1">
                     
@@ -162,7 +166,7 @@ $items = $stmt->fetchAll();
 
         <div class="col-md-8">
             <div class="card card-custom p-3">
-                <h5 class="text-white mb-3">Active Liabilities & Policies</h5>
+                <h5 class="mb-3 fw-bold">Active Liabilities & Policies</h5>
                 <div class="table-responsive">
                     <table class="table table-dark-custom table-hover align-middle m-0">
                         <thead>
@@ -187,7 +191,7 @@ $items = $stmt->fetchAll();
                                         </td>
                                         <td><span class="badge bg-warning text-dark"><?= strtoupper($item['type']) ?></span></td>
                                         <td>
-                                            <div class="text-white fw-bold">₹<?= number_format($remaining, 2) ?></div>
+                                            <div class="fw-bold">₹<?= number_format($remaining, 2) ?></div>
                                             <small class="text-subtle">of ₹<?= number_format($item['total_amount'], 2) ?></small>
                                         </td>
                                         <td>Every <?= $item['due_day'] ?>th</td>

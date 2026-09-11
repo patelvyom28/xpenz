@@ -33,13 +33,20 @@
     --btn-outline-color: #24292f;
 }
 
-/* Base Body Style */
-body {
+/* Base Body Style Reset */
+html, body {
     background-color: var(--bg-color) !important;
     color: var(--text-color) !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     padding-bottom: 70px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Force Bootstrap Elements to Respect Dynamic Themes */
+.bg-dark, .modal-content, .navbar {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-color) !important;
 }
 
 /* Base Typography Controls */
@@ -57,24 +64,33 @@ h1, h2, h3, h4, h5, h6, .fs-3, .fs-6 {
     background-color: var(--card-bg) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 16px;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
-/* Form Inputs, Dropdowns & High-Contrast Placeholders Fix */
+/* Dashboard Summary Cards Grid Layout Fix (Horizontal Line) */
+.summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 15px !important;
+}
+
+.summary-grid .card {
+    border-radius: 16px !important;
+}
+
+/* Form Inputs, Dropdowns & High-Contrast Placeholders */
 .form-control, .form-select {
     background-color: var(--input-bg) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--input-color) !important;
+    border-radius: 10px;
 }
 
-/* Chrome, Firefox, Opera, Safari Placeholder High-Contrast Fix */
-.form-control::placeholder,
-textarea::placeholder {
+.form-control::placeholder, textarea::placeholder {
     color: var(--input-placeholder) !important;
     opacity: 1 !important;
 }
 
-/* Date Picker Icon & Text Fix */
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(0.8);
 }
@@ -89,11 +105,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: var(--input-color) !important;
 }
 
-/* Light Theme Specific Text Overrides */
-[data-theme="light"] .text-white {
-    color: #1f2328 !important;
-}
-
 /* Preserve White Text inside Solid Colored Badges & Buttons */
 .badge.bg-primary, 
 .badge.bg-success, 
@@ -101,30 +112,40 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .btn-primary, 
 .btn-success, 
 .btn-danger,
-.avatar-badge,
-.bg-success,
-.bg-danger {
+.avatar-badge {
     color: #ffffff !important;
+    font-weight: 600;
 }
 
-.btn-primary .text-white,
-.btn-success .text-white,
-.btn-danger .text-white {
-    color: #ffffff !important;
+/* Quick Action & Stat Icon Utility Colors (Forced Accent Colors) */
+.text-success, i.text-success, .fa-circle-plus { 
+    color: #2ea043 !important; 
+}
+
+.text-danger, i.text-danger, .fa-circle-minus { 
+    color: #f85149 !important; 
+}
+
+.text-warning, i.text-warning { 
+    color: #f0883e !important; 
+}
+
+.text-info, i.text-info { 
+    color: #58a6ff !important; 
 }
 
 /* Outline Buttons */
-.btn-outline-light {
+.btn-outline-light, .btn-outline-secondary {
     color: var(--btn-outline-color) !important;
     border-color: var(--border-color) !important;
 }
 
-.btn-outline-light:hover {
+.btn-outline-light:hover, .btn-outline-secondary:hover {
     background-color: var(--border-color) !important;
     color: var(--text-color) !important;
 }
 
-/* Table Dark & Light Mode Rules */
+/* Table Dark & Light Mode Rules Across All Modules */
 .table {
     --bs-table-bg: transparent !important;
     --bs-table-color: var(--text-color) !important;
@@ -144,7 +165,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border-color: var(--border-color) !important;
 }
 
-.table-dark-custom th {
+.table-dark-custom th, .table th {
     background-color: var(--table-header-bg) !important;
     border-bottom: 1px solid var(--border-color) !important;
     color: var(--table-header-color) !important;
@@ -198,15 +219,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* ========================================================= */
-/* PC / DESKTOP DASHBOARD GRID LAYOUT                        */
-/* ========================================================= */
-.summary-grid {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 15px !important;
-}
-
-/* ========================================================= */
 /* MOBILE APP RESPONSIVE LAYOUT ADJUSTMENTS (< 768px)        */
 /* ========================================================= */
 @media (max-width: 768px) {
@@ -236,38 +248,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         text-align: center;
     }
 
-    .mb-4.d-flex.justify-content-between.align-items-end {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 12px;
-    }
-
-    .mb-4.d-flex.justify-content-between.align-items-end .text-end {
-        text-align: left !important;
-        width: 100%;
-    }
-
-    .progress {
-        width: 100% !important;
-    }
-
-    .d-flex.gap-2.mb-4.flex-wrap {
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        padding-bottom: 8px;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .d-flex.gap-2.mb-4.flex-wrap .btn {
-        flex: 0 0 auto;
-        white-space: nowrap;
-    }
-
-    .table-responsive {
-        border-radius: 8px;
-        overflow-x: auto !important;
-    }
-
     /* 2x2 Grid View for Mobile Summary Cards */
     .summary-grid {
         grid-template-columns: repeat(2, 1fr) !important;
@@ -283,7 +263,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         font-size: 1.1rem !important;
     }
 
-    /* Fixed Bottom Navigation Bar for Mobile */
     .mobile-bottom-nav {
         display: flex !important;
         position: fixed;
@@ -319,51 +298,4 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     .mobile-bottom-nav {
         display: none !important;
     }
-}
-
-/* Printable PDF/Statement Overrides */
-@media print {
-    .no-print { display: none !important; }
-    body { background: #ffffff !important; color: #000000 !important; }
-    .card-custom { background: none !important; border: none !important; color: #000 !important; }
-    .table { color: #000 !important; }
-    .table-dark-custom th, .table-dark-custom td { color: #000 !important; border-bottom: 1px solid #ccc !important; }
-}
-
-/* P&L Statement Net Profit / Loss Text Fix */
-.table td.text-muted, 
-.table tr.fw-bold td,
-.table-dark-custom td.text-muted,
-[data-theme="dark"] .text-muted {
-    color: #c9d1d9 !important;
-}
-
-/* Specific Fix for P&L Net Summary Row */
-.table tr:last-child td:first-child,
-.table tr:last-child th:first-child {
-    color: var(--text-color) !important;
-    font-weight: 700 !important;
-}
-
-/* Preserve Utility Text Colors for Icons & Badges */
-.text-success, 
-i.text-success, 
-.fa-circle-plus {
-    color: #2ea043 !important;
-}
-
-.text-danger, 
-i.text-danger, 
-.fa-circle-minus {
-    color: #f85149 !important;
-}
-
-.text-warning, 
-i.text-warning {
-    color: #f0883e !important;
-}
-
-.text-info, 
-i.text-info {
-    color: #58a6ff !important;
 }

@@ -47,6 +47,10 @@ $net_profit = $total_revenue - $total_operating_expense;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- External Theme Switcher Engine -->
+    <script src="../assets/js/theme.js"></script>
+
     <style>
         @media print {
             .no-print { display: none !important; }
@@ -91,7 +95,7 @@ $net_profit = $total_revenue - $total_operating_expense;
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card card-custom p-3 text-center border-start border-4 <?= $net_profit >= 0 ? 'border-primary' : 'border-warning' ?>">
+            <div class="card card-custom p-3 text-center border-start border-start border-4 <?= $net_profit >= 0 ? 'border-primary' : 'border-warning' ?>">
                 <small class="text-subtle text-uppercase">Net Profit / Savings</small>
                 <h3 class="<?= $net_profit >= 0 ? 'text-primary' : 'text-warning' ?> fw-bold m-0 mt-1">₹<?= number_format($net_profit, 2) ?></h3>
             </div>
@@ -100,7 +104,7 @@ $net_profit = $total_revenue - $total_operating_expense;
 
     <!-- Statement Table -->
     <div class="card card-custom p-4">
-        <h5 class="text-white mb-3"><i class="fa-solid fa-list-ol text-info me-2"></i>Income & Expense Breakdown</h5>
+        <h5 class="mb-3 fw-bold"><i class="fa-solid fa-list-ol text-info me-2"></i>Income & Expense Breakdown</h5>
         <div class="table-responsive">
             <table class="table table-dark-custom align-middle">
                 <thead>
@@ -113,7 +117,7 @@ $net_profit = $total_revenue - $total_operating_expense;
                 <tbody>
                     <!-- REVENUE SECTION -->
                     <tr>
-                        <td colspan="3" class="fw-bold text-success bg-dark-subtle">1. REVENUE / INCOME</td>
+                        <td colspan="3" class="fw-bold text-success opacity-100">1. REVENUE / INCOME</td>
                     </tr>
                     <?php if (count($income_breakdown) > 0): ?>
                         <?php foreach ($income_breakdown as $inc): ?>
@@ -134,7 +138,7 @@ $net_profit = $total_revenue - $total_operating_expense;
 
                     <!-- EXPENSE SECTION -->
                     <tr>
-                        <td colspan="3" class="fw-bold text-danger bg-dark-subtle">2. OPERATING EXPENSES</td>
+                        <td colspan="3" class="fw-bold text-danger opacity-100">2. OPERATING EXPENSES</td>
                     </tr>
                     <?php if (count($expense_breakdown) > 0): ?>
                         <?php foreach ($expense_breakdown as $exp): ?>

@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Kolkata');
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -64,7 +65,7 @@ $stmt->execute([':user_id' => $user_id]);
 $subscriptions = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="gu">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,6 +73,9 @@ $subscriptions = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- Theme Switcher External JS Engine -->
+    <script src="../assets/js/theme.js"></script>
 </head>
 <body>
 
@@ -98,7 +102,7 @@ $subscriptions = $stmt->fetchAll();
         <!-- Add Subscription Form -->
         <div class="col-md-4">
             <div class="card card-custom p-3">
-                <h5 class="text-white mb-3">Add Subscription / Bill</h5>
+                <h5 class="mb-3 fw-bold">Add Subscription / Bill</h5>
                 <form method="POST">
                     <input type="hidden" name="add_sub" value="1">
                     
@@ -147,7 +151,7 @@ $subscriptions = $stmt->fetchAll();
         <!-- Subscriptions List -->
         <div class="col-md-8">
             <div class="card card-custom p-3">
-                <h5 class="text-white mb-3">Active Subscriptions & Recurring Bills</h5>
+                <h5 class="mb-3 fw-bold">Active Subscriptions & Recurring Bills</h5>
                 <div class="table-responsive">
                     <table class="table table-dark-custom table-hover align-middle m-0">
                         <thead>

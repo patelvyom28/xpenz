@@ -53,6 +53,9 @@ if (count($projection_labels) < 3) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- External Theme Switcher Engine -->
+    <script src="../assets/js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -66,7 +69,7 @@ if (count($projection_labels) < 3) {
     <div class="row g-4 mb-4">
         <div class="col-md-8">
             <div class="card card-custom p-3 h-100">
-                <h5 class="text-white mb-3"><i class="fa-solid fa-chart-area me-2 text-info"></i>Annual Comparative Trends (<?= date('Y') ?>)</h5>
+                <h5 class="mb-3 fw-bold"><i class="fa-solid fa-chart-area me-2 text-info"></i>Annual Comparative Trends (<?= date('Y') ?>)</h5>
                 <div style="height: 300px;">
                     <canvas id="annualTrendChart"></canvas>
                 </div>
@@ -74,7 +77,7 @@ if (count($projection_labels) < 3) {
         </div>
         <div class="col-md-4">
             <div class="card card-custom p-3 h-100">
-                <h5 class="text-white mb-3"><i class="fa-solid fa-wand-magic-sparkles me-2 text-warning"></i>Smart Run-Rate Projections</h5>
+                <h5 class="mb-3 fw-bold"><i class="fa-solid fa-wand-magic-sparkles me-2 text-warning"></i>Smart Run-Rate Projections</h5>
                 <div class="p-2">
                     <small class="text-subtle d-block">Monthly Avg Income</small>
                     <h4 class="text-success fw-bold">₹<?= number_format($avg_income, 2) ?></h4>
@@ -90,7 +93,7 @@ if (count($projection_labels) < 3) {
     </div>
 
     <div class="card card-custom p-3">
-        <h5 class="text-white mb-3"><i class="fa-solid fa-chart-bar me-2 text-success"></i>Next 3-Month Cash Flow Projection</h5>
+        <h5 class="mb-3 fw-bold"><i class="fa-solid fa-chart-bar me-2 text-success"></i>Next 3-Month Cash Flow Projection</h5>
         <div style="height: 250px;">
             <canvas id="cashFlowChart"></canvas>
         </div>

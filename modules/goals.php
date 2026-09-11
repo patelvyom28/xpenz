@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Kolkata');
 require_once '../config/db.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -98,7 +99,7 @@ $stmt->execute([':user_id' => $user_id]);
 $goals = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="gu">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,6 +107,9 @@ $goals = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- Theme Switcher External JS Engine -->
+    <script src="../assets/js/theme.js"></script>
 </head>
 <body>
 
@@ -131,7 +135,7 @@ $goals = $stmt->fetchAll();
         <!-- Add New Goal Form -->
         <div class="col-md-4">
             <div class="card card-custom p-3">
-                <h5 class="text-white mb-3">Set New Savings Goal</h5>
+                <h5 class="mb-3 fw-bold">Set New Savings Goal</h5>
                 <form method="POST">
                     <input type="hidden" name="add_goal" value="1">
                     
@@ -171,7 +175,7 @@ $goals = $stmt->fetchAll();
                             <div class="card card-custom p-4">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
-                                        <h5 class="m-0 text-white fw-bold"><?= htmlspecialchars($g['goal_name']) ?></h5>
+                                        <h5 class="m-0 fw-bold"><?= htmlspecialchars($g['goal_name']) ?></h5>
                                         <small class="text-subtle">Target Date: <?= date('d M Y', strtotime($g['target_date'])) ?></small>
                                     </div>
                                     <div>
