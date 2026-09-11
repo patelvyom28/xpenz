@@ -112,6 +112,9 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- External Theme Switcher Engine -->
+    <script src="assets/js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -123,6 +126,12 @@ if ($current_hour >= 8 && $current_hour < 12) {
             <img src="assets/images/logo.png" alt="XPenz Logo" style="height: 38px;">
         </div>
         <div class="d-flex align-items-center gap-2">
+            <!-- Dark / Light Mode Toggle Button -->
+            <button id="themeToggleBtn" class="btn btn-outline-secondary btn-sm rounded-pill px-3 d-flex align-items-center gap-1">
+                <i class="fas fa-sun text-warning" id="themeIcon"></i>
+                <span id="themeText">Light</span>
+            </button>
+
             <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#budgetModal">
                 <i class="fa-solid fa-sliders"></i> <span class="d-none d-md-inline">Budget Limit</span>
             </button>
@@ -358,3 +367,4 @@ if ($current_hour >= 8 && $current_hour < 12) {
 <script src="assets/js/dashboard.js"></script>
 </body>
 </html>
+

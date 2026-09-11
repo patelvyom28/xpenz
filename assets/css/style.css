@@ -1,34 +1,166 @@
-/* Base Dark Theme */
+/* ========================================================= */
+/* THEME VARIABLES (DARK & LIGHT MODE)                       */
+/* ========================================================= */
+:root {
+    --bg-color: #0d1117;
+    --card-bg: #161b22;
+    --border-color: #30363d;
+    --text-color: #e6edf3;
+    --text-subtle: #8b949e;
+    --input-bg: #161b22;
+    --input-color: #ffffff;
+    --input-placeholder: #8b949e;
+    --table-header-bg: #21262d;
+    --table-header-color: #c9d1d9;
+    --table-hover: #21262d;
+    --nav-bottom-bg: #161b22;
+    --btn-outline-color: #f0f6fc;
+}
+
+[data-theme="light"] {
+    --bg-color: #f6f8fa;
+    --card-bg: #ffffff;
+    --border-color: #d0d7de;
+    --text-color: #1f2328;
+    --text-subtle: #57606a;
+    --input-bg: #ffffff;
+    --input-color: #1f2328;
+    --input-placeholder: #6e7781;
+    --table-header-bg: #f3f4f6;
+    --table-header-color: #24292f;
+    --table-hover: #f3f4f6;
+    --nav-bottom-bg: #ffffff;
+    --btn-outline-color: #24292f;
+}
+
+/* Base Body Style */
 body {
-    background-color: #0d1117 !important;
-    color: #e6edf3 !important;
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding-bottom: 70px; /* Space for Mobile Bottom Nav */
+    padding-bottom: 70px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.text-subtle {
-    color: #8b949e !important;
+/* Base Typography Controls */
+h1, h2, h3, h4, h5, h6, .fs-3, .fs-6 {
+    color: var(--text-color) !important;
 }
 
+.text-subtle, .form-label, label {
+    color: var(--text-subtle) !important;
+    font-weight: 500;
+}
+
+/* Card Styling */
 .card-custom {
-    background-color: #161b22 !important;
-    border: 1px solid #30363d !important;
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 16px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
+/* Form Inputs, Dropdowns & High-Contrast Placeholders Fix */
 .form-control, .form-select {
-    background-color: #0d1117 !important;
-    border: 1px solid #30363d !important;
-    color: #f0f6fc !important;
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--input-color) !important;
+}
+
+/* Chrome, Firefox, Opera, Safari Placeholder High-Contrast Fix */
+.form-control::placeholder,
+textarea::placeholder {
+    color: var(--input-placeholder) !important;
+    opacity: 1 !important;
+}
+
+/* Date Picker Icon & Text Fix */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+}
+
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.2);
 }
 
 .form-control:focus, .form-select:focus {
     border-color: #58a6ff !important;
     box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25) !important;
+    color: var(--input-color) !important;
 }
 
+/* Light Theme Specific Text Overrides */
+[data-theme="light"] .text-white {
+    color: #1f2328 !important;
+}
+
+/* Preserve White Text inside Solid Colored Badges & Buttons */
+.badge.bg-primary, 
+.badge.bg-success, 
+.badge.bg-danger, 
+.btn-primary, 
+.btn-success, 
+.btn-danger,
+.avatar-badge,
+.bg-success,
+.bg-danger {
+    color: #ffffff !important;
+}
+
+.btn-primary .text-white,
+.btn-success .text-white,
+.btn-danger .text-white {
+    color: #ffffff !important;
+}
+
+/* Outline Buttons */
+.btn-outline-light {
+    color: var(--btn-outline-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+.btn-outline-light:hover {
+    background-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+
+/* Table Dark & Light Mode Rules */
+.table {
+    --bs-table-bg: transparent !important;
+    --bs-table-color: var(--text-color) !important;
+    color: var(--text-color) !important;
+}
+
+.table tbody tr {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+}
+
+.table tbody tr:hover {
+    background-color: var(--table-hover) !important;
+}
+
+.table td, .table th {
+    border-color: var(--border-color) !important;
+}
+
+.table-dark-custom th {
+    background-color: var(--table-header-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--table-header-color) !important;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.table-dark-custom td {
+    border-bottom: 1px solid var(--border-color) !important;
+    font-size: 0.85rem;
+}
+
+/* Progress Bars & Avatar Badges */
 .progress {
-    background-color: #21262d;
+    background-color: var(--border-color);
     border-radius: 10px;
 }
 
@@ -65,57 +197,28 @@ body {
     font-size: 0.85rem;
 }
 
-/* Table Dark Mode Rules */
-.table {
-    --bs-table-bg: transparent !important;
-    --bs-table-color: #e6edf3 !important;
-    color: #e6edf3 !important;
+/* ========================================================= */
+/* PC / DESKTOP DASHBOARD GRID LAYOUT                        */
+/* ========================================================= */
+.summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 15px !important;
 }
 
-.table tbody tr {
-    background-color: #161b22 !important;
-    color: #e6edf3 !important;
-}
-
-.table tbody tr:hover {
-    background-color: #21262d !important;
-    color: #ffffff !important;
-}
-
-.table td, .table th {
-    border-color: #30363d !important;
-}
-
-.table-dark-custom {
-    color: #c9d1d9 !important;
-}
-
-.table-dark-custom th {
-    background-color: #21262d !important;
-    border-bottom: 1px solid #30363d !important;
-    color: #8b949e !important;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-}
-
-.table-dark-custom td {
-    border-bottom: 1px solid #21262d !important;
-    font-size: 0.85rem;
-}
-
-/* Mobile App Layout Adjustments */
+/* ========================================================= */
+/* MOBILE APP RESPONSIVE LAYOUT ADJUSTMENTS (< 768px)        */
+/* ========================================================= */
 @media (max-width: 768px) {
     .container {
         padding-left: 14px !important;
         padding-right: 14px !important;
     }
 
-    /* Top Brand Bar */
     .top-header {
         margin-bottom: 15px !important;
     }
 
-    /* Compact Alert Banners */
     .alert-info, .alert-warning, .alert-danger {
         border-radius: 12px !important;
         padding: 12px !important;
@@ -133,7 +236,6 @@ body {
         text-align: center;
     }
 
-    /* Welcome Header & Progress Bar */
     .mb-4.d-flex.justify-content-between.align-items-end {
         flex-direction: column !important;
         align-items: flex-start !important;
@@ -149,7 +251,6 @@ body {
         width: 100% !important;
     }
 
-    /* Navigation Buttons Horizontal Scroll */
     .d-flex.gap-2.mb-4.flex-wrap {
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
@@ -162,16 +263,14 @@ body {
         white-space: nowrap;
     }
 
-    /* Table Horizontal Scroll Fix */
     .table-responsive {
         border-radius: 8px;
         overflow-x: auto !important;
     }
 
-    /* 2x2 Grid for Dashboard Summary Cards */
+    /* 2x2 Grid View for Mobile Summary Cards */
     .summary-grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 10px !important;
     }
 
@@ -191,15 +290,15 @@ body {
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: #161b22;
-        border-top: 1px solid #30363d;
+        background-color: var(--nav-bottom-bg);
+        border-top: 1px solid var(--border-color);
         z-index: 1030;
         justify-content: space-around;
         padding: 8px 0;
     }
 
     .mobile-bottom-nav a {
-        color: #8b949e;
+        color: var(--text-subtle);
         text-decoration: none;
         font-size: 0.7rem;
         text-align: center;
@@ -229,4 +328,42 @@ body {
     .card-custom { background: none !important; border: none !important; color: #000 !important; }
     .table { color: #000 !important; }
     .table-dark-custom th, .table-dark-custom td { color: #000 !important; border-bottom: 1px solid #ccc !important; }
+}
+
+/* P&L Statement Net Profit / Loss Text Fix */
+.table td.text-muted, 
+.table tr.fw-bold td,
+.table-dark-custom td.text-muted,
+[data-theme="dark"] .text-muted {
+    color: #c9d1d9 !important;
+}
+
+/* Specific Fix for P&L Net Summary Row */
+.table tr:last-child td:first-child,
+.table tr:last-child th:first-child {
+    color: var(--text-color) !important;
+    font-weight: 700 !important;
+}
+
+/* Preserve Utility Text Colors for Icons & Badges */
+.text-success, 
+i.text-success, 
+.fa-circle-plus {
+    color: #2ea043 !important;
+}
+
+.text-danger, 
+i.text-danger, 
+.fa-circle-minus {
+    color: #f85149 !important;
+}
+
+.text-warning, 
+i.text-warning {
+    color: #f0883e !important;
+}
+
+.text-info, 
+i.text-info {
+    color: #58a6ff !important;
 }
