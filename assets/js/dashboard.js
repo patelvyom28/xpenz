@@ -1,16 +1,40 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Render Expense Breakdown Doughnut Chart
-    const ctxExpense = document.getElementById('expenseChart');
-    if (ctxExpense && window.chartLabels && window.chartValues) {
-        new Chart(ctxExpense, {
+    // --- 1. Smart Expense Toast Logic (Max 3 Times / Day) ---
+    const maxShowsPerDay = 3;
+    const today = new Date().toISOString().split('T')[0];
+    let alertData = JSON.parse(localStorage.getItem('xpenz_alert_tracker')) || { date: '', count: 0 };
+
+    if (alertData.date !== today) {
+        alertData = { date: today, count: 0 };
+    }
+
+    const popup = document.getElementById('smartExpenseToast');
+    if (popup && alertData.count < maxShowsPerDay) {
+        setTimeout(() => {
+            popup.classList.add('show');
+            alertData.count += 1;
+            localStorage.setItem('xpenz_alert_tracker', JSON.stringify(alertData));
+        }, 1000);
+
+        setTimeout(() => {
+            dismissToast();
+        }, 8000);
+    }
+
+    // --- 2. Chart.js Permanent Dark Theme Color Palette ---
+    const textColor = '#e6edf3';
+    const gridColor = '#30363d';
+
+    // Expense Pie Chart
+    const expenseCtx = document.getElementById('expenseChart');
+    if (expenseCtx && window.chartLabels && window.chartLabels.length > 0) {
+        new Chart(expenseCtx, {
             type: 'doughnut',
             data: {
                 labels: window.chartLabels,
                 datasets: [{
                     data: window.chartValues,
-                    backgroundColor: [
-                        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#f8f9fc'
-                    ],
+                    backgroundColor: ['#f85149', '#06b6d4', '#eab308', '#a855f7', '#3b82f6', '#22c55e'],
                     borderWidth: 0
                 }]
             },
@@ -18,117 +42,44 @@ document.addEventListener("DOMContentLoaded", function () {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { color: '#e6edf3', font: { size: 11 } }
-                    }
+                    legend: { labels: { color: textColor } }
                 }
             }
         });
     }
 
-    // Render Income vs Expense Bar Chart
-    const ctxCompare = document.getElementById('compareChart');
-    if (ctxCompare) {
-        new Chart(ctxCompare, {
+    // Income vs Expense Bar Chart
+    const compareCtx = document.getElementById('compareChart');
+    if (compareCtx) {
+        new Chart(compareCtx, {
             type: 'bar',
             data: {
-                labels: ['Overview'],
-                datasets: [
-                    {
-                        label: 'Income',
-                        data: [window.totalIncome || 0],
-                        backgroundColor: '#1cc88a',
-                        borderRadius: 6
-                    },
-                    {
-                        label: 'Expense',
-                        data: [window.totalExpense || 0],
-                        backgroundColor: '#e74a3b',
-                        borderRadius: 6
-                    }
-                ]
+                labels: ['Income', 'Expense'],
+                datasets: [{
+                    label: 'Amount (₹)',
+                    data: [window.totalIncome || 0, window.totalExpense || 0],
+                    backgroundColor: ['#22c55e', '#ef4444'],
+                    borderRadius: 6
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: { ticks: { color: '#858796' }, grid: { display: false } },
-                    y: { ticks: { color: '#858796' }, grid: { color: '#373e47' } }
+                    x: { ticks: { color: textColor }, grid: { display: false } },
+                    y: { ticks: { color: textColor }, grid: { color: gridColor } }
                 },
                 plugins: {
-                    legend: { labels: { color: '#e6edf3' } }
+                    legend: { display: false }
                 }
             }
         });
     }
 });
 
-// Dynamic Alert Trigger System (Visual Toast + Desktop Push)
-function requestNotification() {
-    const alertMsg = window.reminderText || "Remember to log your Cash & Online wallet transactions!";
-    
-    // 1. In-App Visual Alert Modal/Toast
-    const toastHTML = `
-        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
-            <div id="smartToast" class="toast show bg-dark text-white border-info shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-info text-dark fw-bold">
-                    <i class="fa-solid fa-bell me-2"></i> XPenz Smart Reminder
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast"></button>
-                </div>
-                <div class="toast-body">
-                    ${alertMsg}
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Insert Toast to DOM
-    let container = document.getElementById('toastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        document.body.appendChild(container);
+function dismissToast() {
+    const popup = document.getElementById('smartExpenseToast');
+    if (popup) {
+        popup.classList.remove('show');
     }
-    container.innerHTML = toastHTML;
-
-    // Update Button State
-    const btn = document.getElementById('enableNotifyBtn');
-    if (btn) {
-        btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Alert Triggered!';
-        btn.classList.replace('btn-outline-info', 'btn-success');
-    }
-
-    // 2. Try Browser Push Notification
-    if ("Notification" in window) {
-        if (Notification.permission === "granted") {
-            new Notification("XPenz Smart Alert", {
-                body: alertMsg,
-                icon: "assets/images/logo.png"
-            });
-        } else if (Notification.permission !== "denied") {
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    new Notification("XPenz Smart Alert", {
-                        body: alertMsg,
-                        icon: "assets/images/logo.png"
-                    });
-                }
-            });
-        }
-    }
-}
-
-// Automatically trigger smart toast on dashboard load
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(requestNotification, 1000); // Popup opens automatically after 1 second
-});
-
-// Register PWA Service Worker for Mobile/Desktop Installation
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-            .then(reg => console.log('PWA Service Worker Registered successfully!', reg))
-            .catch(err => console.error('PWA Service Worker Registration Failed:', err));
-    });
 }

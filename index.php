@@ -27,6 +27,9 @@ $redirect_target = isset($_SESSION['user_id']) ? 'home.php' : 'auth/login.php';
     <!-- CSS Links -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- Theme Switcher Engine -->
+    <script src="assets/js/theme.js"></script>
 
     <style>
         .splash-container {
@@ -36,17 +39,18 @@ $redirect_target = isset($_SESSION['user_id']) ? 'home.php' : 'auth/login.php';
             align-items: center;
             justify-content: center;
             background-color: #0d1117;
+            user-select: none;
         }
 
         .splash-logo {
-            width: 100px;
+            width: 105px;
             height: auto;
-            animation: pulse 1.5s infinite ease-in-out;
+            animation: pulse 1.4s infinite ease-in-out;
         }
 
         @keyframes pulse {
             0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 1; }
             100% { transform: scale(0.95); opacity: 0.8; }
         }
     </style>
@@ -57,11 +61,12 @@ $redirect_target = isset($_SESSION['user_id']) ? 'home.php' : 'auth/login.php';
     <img src="assets/images/logo.png" alt="XPenz Logo" class="splash-logo mb-3">
     <h3 class="fw-bold text-white mb-1">XPenz</h3>
     <p class="text-subtle small mb-4">Next-Gen Expense & Budget Tracker</p>
-    <div class="spinner-border text-primary" role="status">
+    <div class="spinner-border text-primary spinner-border-sm" role="status">
         <span class="visually-hidden">Loading...</span>
     </div>
 </div>
 
+<script src="assets/js/splash.js"></script>
 <script>
     // Automatic smart redirect (Directly to Home Dashboard if logged in)
     const targetPage = "<?= $redirect_target ?>";
@@ -69,7 +74,7 @@ $redirect_target = isset($_SESSION['user_id']) ? 'home.php' : 'auth/login.php';
         window.location.href = targetPage;
     }, 1200);
 
-    // Register Service Worker for PWA
+    // Register Service Worker for PWA Offline Support
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js')

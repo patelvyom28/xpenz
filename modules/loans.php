@@ -12,6 +12,17 @@ $user_id = $_SESSION['user_id'];
 $error = '';
 $success = '';
 
+// Fetch User Profile for Initials
+$user_stmt = $pdo->prepare("SELECT name FROM users WHERE id = :user_id");
+$user_stmt->execute([':user_id' => $user_id]);
+$user = $user_stmt->fetch();
+$user_name = !empty($user['name']) ? $user['name'] : 'User';
+
+$words = explode(' ', trim($user_name));
+$initials = count($words) >= 2 
+    ? strtoupper(substr($words[0], 0, 1) . substr($words[count($words) - 1], 0, 1))
+    : strtoupper(substr($user_name, 0, 2));
+
 // Delete Record
 if (isset($_GET['delete_id'])) {
     $del_id = $_GET['delete_id'];
@@ -87,7 +98,7 @@ $stmt->execute([':user_id' => $user_id]);
 $items = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -99,128 +110,170 @@ $items = $stmt->fetchAll();
     <!-- External Theme Switcher Engine -->
     <script src="../assets/js/theme.js"></script>
 </head>
-<body>
+<body class="bg-dark text-white">
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fa-solid fa-building-columns me-2 text-primary"></i>Loans & Insurance Portfolio</h2>
-        <a href="../home.php" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard</a>
-    </div>
-
-    <?php if (isset($_SESSION['msg'])): ?>
-        <div class="alert alert-<?= $_SESSION['msg_type']; ?> alert-dismissible fade show">
-            <?= $_SESSION['msg']; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="dashboard-layout">
+    <!-- Fixed Desktop Sidebar -->
+    <aside class="sidebar-desktop d-none d-md-flex flex-column py-3 px-3">
+        <div class="mb-4 px-2 d-flex align-items-center gap-2">
+            <img src="../assets/images/logo.png" alt="XPenz Logo" style="height: 34px;">
         </div>
-        <?php unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
-    <?php endif; ?>
+        
+        <nav class="nav flex-column gap-1">
+            <a href="../home.php" class="nav-link rounded-3"><i class="fa-solid fa-house me-3"></i>Dashboard</a>
+            <a href="transactions.php" class="nav-link rounded-3"><i class="fa-solid fa-list-check me-3"></i>Transactions</a>
+            <a href="subscriptions.php" class="nav-link rounded-3"><i class="fa-solid fa-calendar-check me-3"></i>Subscriptions</a>
+            <a href="goals.php" class="nav-link rounded-3"><i class="fa-solid fa-bullseye me-3"></i>Goals</a>
+            <a href="loans.php" class="nav-link active rounded-3"><i class="fa-solid fa-building-columns me-3"></i>Loans</a>
+            <a href="analytics.php" class="nav-link rounded-3"><i class="fa-solid fa-chart-line me-3"></i>Analytics</a>
+            <a href="pnl_statement.php" class="nav-link rounded-3"><i class="fa-solid fa-file-invoice-dollar me-3"></i>P&L Statement</a>
+        </nav>
+    </aside>
 
-    <?php if ($error): ?><div class="alert alert-danger py-2"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-    <?php if ($success): ?><div class="alert alert-success py-2"><?= htmlspecialchars($success) ?></div><?php endif; ?>
-
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card card-custom p-3">
-                <h5 class="mb-3 fw-bold">Add Loan / Insurance / EMI</h5>
-                <form method="POST">
-                    <input type="hidden" name="add_portfolio" value="1">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Type</label>
-                        <select name="type" class="form-select" required>
-                            <option value="loan">Car / Home Loan</option>
-                            <option value="insurance">Health / Term Insurance</option>
-                            <option value="emi">Product EMI (Gadgets/Appliances)</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Title / Item Name</label>
-                        <input type="text" name="title" class="form-control" placeholder="e.g. Brezza Loan, Health Policy" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Provider / Bank Name</label>
-                        <input type="text" name="lender_provider" class="form-control" placeholder="e.g. HDFC Bank, LIC">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Total Amount / Cover (₹)</label>
-                        <input type="number" step="0.01" name="total_amount" class="form-control" placeholder="500000" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Monthly Installment / Premium (₹)</label>
-                        <input type="number" step="0.01" name="monthly_installment" class="form-control" placeholder="12000" required>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Monthly Due Day (1-31)</label>
-                        <input type="number" min="1" max="31" name="due_day" class="form-control" placeholder="5" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Add Record</button>
-                </form>
+    <!-- Main Content Wrapper -->
+    <div class="main-content-wrapper">
+        <!-- Fixed Top Header -->
+        <header class="top-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2 d-md-none">
+                <img src="../assets/images/logo.png" alt="XPenz Logo" style="height: 34px;">
             </div>
-        </div>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-circle avatar-badge"><?= htmlspecialchars($initials) ?></span>
+                <a href="../auth/logout.php" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i></a>
+            </div>
+        </header>
 
-        <div class="col-md-8">
-            <div class="card card-custom p-3">
-                <h5 class="mb-3 fw-bold">Active Liabilities & Policies</h5>
-                <div class="table-responsive">
-                    <table class="table table-dark-custom table-hover align-middle m-0">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Remaining / Total</th>
-                                <th>Due Day</th>
-                                <th>Installment</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (count($items) > 0): ?>
-                                <?php foreach ($items as $item): 
-                                    $remaining = max(0, $item['total_amount'] - $item['paid_amount']);
-                                ?>
+        <!-- Scrollable Body Content -->
+        <main class="dashboard-body-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fa-solid fa-building-columns me-2 text-primary"></i>Loans & Insurance Portfolio</h2>
+            </div>
+
+            <?php if (isset($_SESSION['msg'])): ?>
+                <div class="alert alert-<?= $_SESSION['msg_type']; ?> alert-dismissible fade show">
+                    <?= $_SESSION['msg']; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
+            <?php endif; ?>
+
+            <?php if ($error): ?><div class="alert alert-danger py-2"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+            <?php if ($success): ?><div class="alert alert-success py-2"><?= htmlspecialchars($success) ?></div><?php endif; ?>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card card-custom p-3">
+                        <h5 class="mb-3 fw-bold">Add Loan / Insurance / EMI</h5>
+                        <form method="POST">
+                            <input type="hidden" name="add_portfolio" value="1">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Type</label>
+                                <select name="type" class="form-select" required>
+                                    <option value="loan">Car / Home Loan</option>
+                                    <option value="insurance">Health / Term Insurance</option>
+                                    <option value="emi">Product EMI (Gadgets/Appliances)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Title / Item Name</label>
+                                <input type="text" name="title" class="form-control" placeholder="e.g. Brezza Loan, Health Policy" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Provider / Bank Name</label>
+                                <input type="text" name="lender_provider" class="form-control" placeholder="e.g. HDFC Bank, LIC">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Total Amount / Cover (₹)</label>
+                                <input type="number" step="0.01" name="total_amount" class="form-control" placeholder="500000" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Monthly Installment / Premium (₹)</label>
+                                <input type="number" step="0.01" name="monthly_installment" class="form-control" placeholder="12000" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Monthly Due Day (1-31)</label>
+                                <input type="number" min="1" max="31" name="due_day" class="form-control" placeholder="5" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Add Record</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card card-custom p-3">
+                        <h5 class="mb-3 fw-bold">Active Liabilities & Policies</h5>
+                        <div class="table-responsive">
+                            <table class="table table-dark-custom table-hover align-middle m-0">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <div class="fw-bold"><?= htmlspecialchars($item['title']) ?></div>
-                                            <small class="text-subtle"><?= htmlspecialchars($item['lender_provider'] ?: 'N/A') ?></small>
-                                        </td>
-                                        <td><span class="badge bg-warning text-dark"><?= strtoupper($item['type']) ?></span></td>
-                                        <td>
-                                            <div class="fw-bold">₹<?= number_format($remaining, 2) ?></div>
-                                            <small class="text-subtle">of ₹<?= number_format($item['total_amount'], 2) ?></small>
-                                        </td>
-                                        <td>Every <?= $item['due_day'] ?>th</td>
-                                        <td class="text-danger fw-bold">₹<?= number_format($item['monthly_installment'], 2) ?></td>
-                                        <td class="text-center">
-                                            <?php if ($remaining > 0): ?>
-                                                <a href="loans.php?pay_id=<?= $item['id']; ?>" class="btn btn-sm btn-success me-1" title="Pay Monthly Installment" onclick="return confirm('Record this monthly installment as expense and reduce remaining balance?');">
-                                                    <i class="fa-solid fa-credit-card me-1"></i> Pay
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="badge bg-success me-1"><i class="fa-solid fa-check me-1"></i> Fully Paid</span>
-                                            <?php endif; ?>
-                                            <a href="loans.php?delete_id=<?= $item['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this item?');" title="Delete">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </a>
-                                        </td>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Remaining / Total</th>
+                                        <th>Due Day</th>
+                                        <th>Installment</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">No loans or insurance records added yet.</td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    <?php if (count($items) > 0): ?>
+                                        <?php foreach ($items as $item): 
+                                            $remaining = max(0, $item['total_amount'] - $item['paid_amount']);
+                                        ?>
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-bold"><?= htmlspecialchars($item['title']) ?></div>
+                                                    <small class="text-subtle"><?= htmlspecialchars($item['lender_provider'] ?: 'N/A') ?></small>
+                                                </td>
+                                                <td><span class="badge bg-warning text-dark"><?= strtoupper($item['type']) ?></span></td>
+                                                <td>
+                                                    <div class="fw-bold">₹<?= number_format($remaining, 2) ?></div>
+                                                    <small class="text-subtle">of ₹<?= number_format($item['total_amount'], 2) ?></small>
+                                                </td>
+                                                <td>Every <?= $item['due_day'] ?>th</td>
+                                                <td class="text-danger fw-bold">₹<?= number_format($item['monthly_installment'], 2) ?></td>
+                                                <td class="text-center">
+                                                    <?php if ($remaining > 0): ?>
+                                                        <a href="loans.php?pay_id=<?= $item['id']; ?>" class="btn btn-sm btn-success me-1" title="Pay Monthly Installment" onclick="return confirm('Record this monthly installment as expense and reduce remaining balance?');">
+                                                            <i class="fa-solid fa-credit-card me-1"></i> Pay
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-success me-1"><i class="fa-solid fa-check me-1"></i> Fully Paid</span>
+                                                    <?php endif; ?>
+                                                    <a href="loans.php?delete_id=<?= $item['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this item?');" title="Delete">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">No loans or insurance records added yet.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
+</div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<div class="mobile-bottom-nav d-md-none">
+    <a href="../home.php"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="transactions.php"><i class="fa-solid fa-receipt"></i><span>History</span></a>
+    <a href="subscriptions.php"><i class="fa-solid fa-calendar-check"></i><span>Subs</span></a>
+    <a href="goals.php"><i class="fa-solid fa-bullseye"></i><span>Goals</span></a>
+    <a href="analytics.php"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

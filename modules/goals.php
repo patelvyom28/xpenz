@@ -12,6 +12,17 @@ $user_id = $_SESSION['user_id'];
 $error = '';
 $success = '';
 
+// Fetch User Profile for Initials
+$user_stmt = $pdo->prepare("SELECT name FROM users WHERE id = :user_id");
+$user_stmt->execute([':user_id' => $user_id]);
+$user = $user_stmt->fetch();
+$user_name = !empty($user['name']) ? $user['name'] : 'User';
+
+$words = explode(' ', trim($user_name));
+$initials = count($words) >= 2 
+    ? strtoupper(substr($words[0], 0, 1) . substr($words[count($words) - 1], 0, 1))
+    : strtoupper(substr($user_name, 0, 2));
+
 // Delete Goal
 if (isset($_GET['delete_id'])) {
     $del_id = $_GET['delete_id'];
@@ -99,7 +110,7 @@ $stmt->execute([':user_id' => $user_id]);
 $goals = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -111,119 +122,160 @@ $goals = $stmt->fetchAll();
     <!-- Theme Switcher External JS Engine -->
     <script src="../assets/js/theme.js"></script>
 </head>
-<body>
+<body class="bg-dark text-white">
 
-<div class="container py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fa-solid fa-bullseye me-2 text-primary"></i>Goal-based Savings Tracker</h2>
-        <a href="../home.php" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard</a>
-    </div>
-
-    <?php if (isset($_SESSION['msg'])): ?>
-        <div class="alert alert-<?= $_SESSION['msg_type']; ?> alert-dismissible fade show">
-            <?= $_SESSION['msg']; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="dashboard-layout">
+    <!-- Fixed Desktop Sidebar -->
+    <aside class="sidebar-desktop d-none d-md-flex flex-column py-3 px-3">
+        <div class="mb-4 px-2 d-flex align-items-center gap-2">
+            <img src="../assets/images/logo.png" alt="XPenz Logo" style="height: 34px;">
         </div>
-        <?php unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
-    <?php endif; ?>
+        
+        <nav class="nav flex-column gap-1">
+            <a href="../home.php" class="nav-link rounded-3"><i class="fa-solid fa-house me-3"></i>Dashboard</a>
+            <a href="transactions.php" class="nav-link rounded-3"><i class="fa-solid fa-list-check me-3"></i>Transactions</a>
+            <a href="subscriptions.php" class="nav-link rounded-3"><i class="fa-solid fa-calendar-check me-3"></i>Subscriptions</a>
+            <a href="goals.php" class="nav-link active rounded-3"><i class="fa-solid fa-bullseye me-3"></i>Goals</a>
+            <a href="loans.php" class="nav-link rounded-3"><i class="fa-solid fa-building-columns me-3"></i>Loans</a>
+            <a href="analytics.php" class="nav-link rounded-3"><i class="fa-solid fa-chart-line me-3"></i>Analytics</a>
+            <a href="pnl_statement.php" class="nav-link rounded-3"><i class="fa-solid fa-file-invoice-dollar me-3"></i>P&L Statement</a>
+        </nav>
+    </aside>
 
-    <?php if ($error): ?><div class="alert alert-danger py-2"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-    <?php if ($success): ?><div class="alert alert-success py-2"><?= htmlspecialchars($success) ?></div><?php endif; ?>
-
-    <div class="row g-4">
-        <!-- Add New Goal Form -->
-        <div class="col-md-4">
-            <div class="card card-custom p-3">
-                <h5 class="mb-3 fw-bold">Set New Savings Goal</h5>
-                <form method="POST">
-                    <input type="hidden" name="add_goal" value="1">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Goal Title</label>
-                        <input type="text" name="goal_name" class="form-control" placeholder="e.g. New Laptop, Emergency Fund, Goa Trip" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Target Amount (₹)</label>
-                        <input type="number" step="0.01" name="target_amount" class="form-control" placeholder="50000" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Initial Savings (₹)</label>
-                        <input type="number" step="0.01" name="current_amount" class="form-control" placeholder="0.00">
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Target Date</label>
-                        <input type="date" name="target_date" class="form-control" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Create Goal</button>
-                </form>
+    <!-- Main Content Wrapper -->
+    <div class="main-content-wrapper">
+        <!-- Fixed Top Header -->
+        <header class="top-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2 d-md-none">
+                <img src="../assets/images/logo.png" alt="XPenz Logo" style="height: 34px;">
             </div>
-        </div>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-circle avatar-badge"><?= htmlspecialchars($initials) ?></span>
+                <a href="../auth/logout.php" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-right-from-bracket"></i></a>
+            </div>
+        </header>
 
-        <!-- Goals Progress List -->
-        <div class="col-md-8">
-            <div class="row g-3">
-                <?php if (count($goals) > 0): ?>
-                    <?php foreach ($goals as $g): 
-                        $percent = min(100, round(($g['current_amount'] / $g['target_amount']) * 100));
-                    ?>
-                        <div class="col-12">
-                            <div class="card card-custom p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <h5 class="m-0 fw-bold"><?= htmlspecialchars($g['goal_name']) ?></h5>
-                                        <small class="text-subtle">Target Date: <?= date('d M Y', strtotime($g['target_date'])) ?></small>
-                                    </div>
-                                    <div>
-                                        <?php if ($g['status'] === 'achieved' || $percent >= 100): ?>
-                                            <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i> Goal Achieved</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner me-1"></i> In Progress</span>
-                                        <?php endif; ?>
-                                        <a href="goals.php?delete_id=<?= $g['id'] ?>" class="btn btn-sm btn-outline-danger ms-2" onclick="return confirm('Delete this goal?');">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </a>
-                                    </div>
-                                </div>
+        <!-- Scrollable Body Content -->
+        <main class="dashboard-body-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fa-solid fa-bullseye me-2 text-primary"></i>Goal-based Savings Tracker</h2>
+            </div>
 
-                                <div class="d-flex justify-content-between text-subtle small mb-1">
-                                    <span>Saved: ₹<?= number_format($g['current_amount'], 2) ?></span>
-                                    <span>Target: ₹<?= number_format($g['target_amount'], 2) ?> (<?= $percent ?>%)</span>
-                                </div>
+            <?php if (isset($_SESSION['msg'])): ?>
+                <div class="alert alert-<?= $_SESSION['msg_type']; ?> alert-dismissible fade show">
+                    <?= $_SESSION['msg']; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
+            <?php endif; ?>
 
-                                <div class="progress bg-secondary mb-3" style="height: 12px;">
-                                    <div class="progress-bar <?= $percent >= 100 ? 'bg-success' : 'bg-primary' ?>" role="progressbar" style="width: <?= $percent ?>%;"></div>
-                                </div>
+            <?php if ($error): ?><div class="alert alert-danger py-2"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+            <?php if ($success): ?><div class="alert alert-success py-2"><?= htmlspecialchars($success) ?></div><?php endif; ?>
 
-                                <?php if ($percent < 100): ?>
-                                    <form method="POST" class="row g-2 align-items-center">
-                                        <input type="hidden" name="deposit_money" value="1">
-                                        <input type="hidden" name="goal_id" value="<?= $g['id'] ?>">
-                                        <div class="col-8 col-sm-9">
-                                            <input type="number" step="0.01" name="deposit_amount" class="form-control form-control-sm" placeholder="Add additional savings (₹)" required>
-                                        </div>
-                                        <div class="col-4 col-sm-3">
-                                            <button type="submit" class="btn btn-sm btn-success w-100"><i class="fa-solid fa-piggy-bank me-1"></i> Deposit</button>
-                                        </div>
-                                    </form>
-                                <?php endif; ?>
+            <div class="row g-4">
+                <!-- Add New Goal Form -->
+                <div class="col-md-4">
+                    <div class="card card-custom p-3">
+                        <h5 class="mb-3 fw-bold">Set New Savings Goal</h5>
+                        <form method="POST">
+                            <input type="hidden" name="add_goal" value="1">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Goal Title</label>
+                                <input type="text" name="goal_name" class="form-control" placeholder="e.g. New Laptop, Emergency Fund, Goa Trip" required>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="col-12 text-center py-5 text-muted card card-custom">
-                        <i class="fa-solid fa-bullseye fa-3x mb-3 text-primary"></i>
-                        <h5>No savings goals created yet.</h5>
-                        <p class="m-0">Start setting targets for your financial future!</p>
+
+                            <div class="mb-3">
+                                <label class="form-label">Target Amount (₹)</label>
+                                <input type="number" step="0.01" name="target_amount" class="form-control" placeholder="50000" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Initial Savings (₹)</label>
+                                <input type="number" step="0.01" name="current_amount" class="form-control" placeholder="0.00">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">Target Date</label>
+                                <input type="date" name="target_date" class="form-control" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Create Goal</button>
+                        </form>
                     </div>
-                <?php endif; ?>
+                </div>
+
+                <!-- Goals Progress List -->
+                <div class="col-md-8">
+                    <div class="row g-3">
+                        <?php if (count($goals) > 0): ?>
+                            <?php foreach ($goals as $g): 
+                                $percent = min(100, round(($g['current_amount'] / $g['target_amount']) * 100));
+                            ?>
+                                <div class="col-12">
+                                    <div class="card card-custom p-4">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <h5 class="m-0 fw-bold"><?= htmlspecialchars($g['goal_name']) ?></h5>
+                                                <small class="text-subtle">Target Date: <?= date('d M Y', strtotime($g['target_date'])) ?></small>
+                                            </div>
+                                            <div>
+                                                <?php if ($g['status'] === 'achieved' || $percent >= 100): ?>
+                                                    <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i> Goal Achieved</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner me-1"></i> In Progress</span>
+                                                <?php endif; ?>
+                                                <a href="goals.php?delete_id=<?= $g['id'] ?>" class="btn btn-sm btn-outline-danger ms-2" onclick="return confirm('Delete this goal?');">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between text-subtle small mb-1">
+                                            <span>Saved: ₹<?= number_format($g['current_amount'], 2) ?></span>
+                                            <span>Target: ₹<?= number_format($g['target_amount'], 2) ?> (<?= $percent ?>%)</span>
+                                        </div>
+
+                                        <div class="progress bg-secondary mb-3" style="height: 12px;">
+                                            <div class="progress-bar <?= $percent >= 100 ? 'bg-success' : 'bg-primary' ?>" role="progressbar" style="width: <?= $percent ?>%;"></div>
+                                        </div>
+
+                                        <?php if ($percent < 100): ?>
+                                            <form method="POST" class="row g-2 align-items-center">
+                                                <input type="hidden" name="deposit_money" value="1">
+                                                <input type="hidden" name="goal_id" value="<?= $g['id'] ?>">
+                                                <div class="col-8 col-sm-9">
+                                                    <input type="number" step="0.01" name="deposit_amount" class="form-control form-control-sm" placeholder="Add additional savings (₹)" required>
+                                                </div>
+                                                <div class="col-4 col-sm-3">
+                                                    <button type="submit" class="btn btn-sm btn-success w-100"><i class="fa-solid fa-piggy-bank me-1"></i> Deposit</button>
+                                                </div>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="col-12 text-center py-5 text-muted card card-custom">
+                                <i class="fa-solid fa-bullseye fa-3x mb-3 text-primary"></i>
+                                <h5>No savings goals created yet.</h5>
+                                <p class="m-0">Start setting targets for your financial future!</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
+</div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<div class="mobile-bottom-nav d-md-none">
+    <a href="../home.php"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="transactions.php"><i class="fa-solid fa-receipt"></i><span>History</span></a>
+    <a href="subscriptions.php"><i class="fa-solid fa-calendar-check"></i><span>Subs</span></a>
+    <a href="goals.php" class="active"><i class="fa-solid fa-bullseye"></i><span>Goals</span></a>
+    <a href="analytics.php"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
