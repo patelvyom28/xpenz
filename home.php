@@ -110,8 +110,8 @@ $recent_stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = :user_i
 $recent_stmt->execute([':user_id' => $user_id]);
 $recent_transactions = $recent_stmt->fetchAll();
 
-// Category Data for Visual Charts
-$cat_stmt = $pdo->prepare("SELECT category, SUM(amount) as total FROM transactions WHERE user_id = :user_id AND type = 'expense' GROUP BY category");
+// Category Data for Visual Charts (Excluding Savings from Expense Breakdown)
+$cat_stmt = $pdo->prepare("SELECT category, SUM(amount) as total FROM transactions WHERE user_id = :user_id AND type = 'expense' AND category != 'Savings' GROUP BY category");
 $cat_stmt->execute([':user_id' => $user_id]);
 $categories_data = $cat_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -153,6 +153,17 @@ if ($current_hour >= 8 && $current_hour < 12) {
     
     <script src="assets/js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Inner boxes hover lift effect */
+        .inner-home-box {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .inner-home-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+    </style>
 </head>
 <body class="bg-dark text-white">
 
@@ -177,11 +188,12 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <!-- Main Content Area -->
     <div class="main-content-wrapper">
         <!-- Top Sticky Header -->
-        <header class="top-header d-flex justify-content-between align-items-center">
+        <header class="top-header d-flex justify-content-between align-items-center px-4">
             <div class="d-flex align-items-center gap-2 d-md-none">
                 <img src="assets/images/logo.png" alt="XPenz Logo" style="height: 34px;">
             </div>
-            <div class="ms-auto d-flex align-items-center gap-2">
+
+            <div class="ms-auto d-flex align-items-center gap-3">
                 <!-- Google-Style Profile Dropdown Menu -->
                 <div class="dropdown">
                     <span class="badge bg-primary rounded-circle avatar-badge dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
@@ -230,142 +242,135 @@ if ($current_hour >= 8 && $current_hour < 12) {
                 <?php endif; ?>
             <?php endif; ?>
 
-            <div class="welcome-header mb-4 d-flex justify-content-between align-items-end">
-                <div>
-                    <h2 class="welcome-title fw-bold text-white mb-1">
-                        Welcome back, <?= htmlspecialchars($user_name) ?>! 👋
-                    </h2>
-                    <p class="welcome-subtext text-subtle m-0">
-                        Real-time wallet balance & transaction dashboard.
-                    </p>
-                </div>
-                <?php if ($monthly_budget > 0): ?>
-                    <div class="text-end">
-                        <small class="text-subtle d-block">Monthly Budget Used</small>
-                        <strong class="text-white fs-6">₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?></strong>
-                        <div class="progress mt-1" style="height: 6px; width: 140px;">
-                            <div class="progress-bar <?= $current_month_expense > $monthly_budget ? 'bg-danger' : ($current_month_expense >= ($monthly_budget * 0.8) ? 'bg-warning' : 'bg-success') ?>" role="progressbar" style="width: <?= $budget_percent ?>%"></div>
-                        </div>
+            <!-- Outer Main Card Box -->
+            <div class="card card-custom p-4 mb-4">
+                <div class="welcome-header mb-4 d-flex justify-content-between align-items-end flex-wrap gap-3">
+                    <div>
+                        <h2 class="welcome-title fw-bold text-white mb-1">
+                            Welcome back, <?= htmlspecialchars($user_name) ?>! 👋
+                        </h2>
+                        <p class="welcome-subtext text-subtle m-0">
+                            Real-time wallet balance & transaction dashboard.
+                        </p>
                     </div>
-                <?php endif; ?>
-            </div>
+                    <?php if ($monthly_budget > 0): ?>
+                        <div class="text-end">
+                            <small class="text-subtle d-block">Monthly Budget Used</small>
+                            <strong class="text-white fs-6">₹<?= number_format($current_month_expense, 2) ?> / ₹<?= number_format($monthly_budget, 2) ?></strong>
+                            <div class="progress mt-1" style="height: 6px; width: 140px;">
+                                <div class="progress-bar <?= $current_month_expense > $monthly_budget ? 'bg-danger' : ($current_month_expense >= ($monthly_budget * 0.8) ? 'bg-warning' : 'bg-success') ?>" role="progressbar" style="width: <?= $budget_percent ?>%"></div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
-           <!-- Overview Summary Cards -->
-            <div class="summary-grid mb-4">
-                <div class="card card-custom card-income-border p-3">
-                    <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">Total Income</small>
-                    <h4 class="text-success mt-2 mb-0 fw-bold">₹<?= number_format($total_income, 2); ?></h4>
+                <!-- Overview Summary Cards (Inner Boxes with Hover) -->
+                <div class="summary-grid mb-4">
+                    <div class="card card-custom inner-home-box card-income-border p-3 border-secondary">
+                        <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">Total Income</small>
+                        <h4 class="text-success mt-2 mb-0 fw-bold">₹<?= number_format($total_income, 2); ?></h4>
+                    </div>
+                    <div class="card card-custom inner-home-box card-expense-border p-3 border-secondary">
+                        <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">Total Expense</small>
+                        <h4 class="text-danger mt-2 mb-0 fw-bold">₹<?= number_format($total_expense, 2); ?></h4>
+                    </div>
+                    <div class="card card-custom inner-home-box border-secondary border-start border-3 border-warning p-3">
+                        <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">💵 Cash Wallet</small>
+                        <h4 class="text-warning mt-2 mb-0 fw-bold">₹<?= number_format($cash_balance, 2); ?></h4>
+                    </div>
+                    <div class="card card-custom inner-home-box border-secondary border-start border-3 border-info p-3">
+                        <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">📱 Bank / Online</small>
+                        <h4 class="text-info mt-2 mb-0 fw-bold">₹<?= number_format($online_balance, 2); ?></h4>
+                    </div>
                 </div>
-                <div class="card card-custom card-expense-border p-3">
-                    <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">Total Expense</small>
-                    <h4 class="text-danger mt-2 mb-0 fw-bold">₹<?= number_format($total_expense, 2); ?></h4>
-                </div>
-                <div class="card card-custom border-start border-3 border-warning p-3">
-                    <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">💵 Cash Wallet</small>
-                    <h4 class="text-warning mt-2 mb-0 fw-bold">₹<?= number_format($cash_balance, 2); ?></h4>
-                </div>
-                <div class="card card-custom border-start border-3 border-info p-3">
-                    <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">📱 Bank / Online</small>
-                    <h4 class="text-info mt-2 mb-0 fw-bold">₹<?= number_format($online_balance, 2); ?></h4>
-                </div>
-            </div>
 
-            <!-- Quick Action Buttons -->
-            <div class="row g-3 mb-4">
-                <div class="col-6">
-                    <a href="modules/add_transaction.php?type=income" class="text-decoration-none">
-                        <div class="card card-custom btn-action-income p-3 text-center">
+                <!-- Quick Action Buttons -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="card card-custom inner-home-box border border-success btn-action-income p-3 text-center" role="button" data-bs-toggle="modal" data-bs-target="#addIncomeModal">
                             <div class="d-flex align-items-center justify-content-center gap-2 py-1">
                                 <i class="fa-solid fa-circle-plus text-success fs-4"></i>
                                 <span class="fw-bold text-white fs-6">Add Income</span>
                             </div>
                         </div>
-                    </a>
-                </div>
-                <div class="col-6">
-                    <a href="modules/add_transaction.php?type=expense" class="text-decoration-none">
-                        <div class="card card-custom btn-action-expense p-3 text-center">
+                    </div>
+                    <div class="col-6">
+                        <div class="card card-custom inner-home-box border border-danger btn-action-expense p-3 text-center" role="button" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
                             <div class="d-flex align-items-center justify-content-center gap-2 py-1">
                                 <i class="fa-solid fa-circle-minus text-danger fs-4"></i>
                                 <span class="fw-bold text-white fs-6">Add Expense</span>
                             </div>
                         </div>
-                    </a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Charts Section -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <div class="card card-custom p-3 h-100">
-                        <h6 class="mb-3 text-white fw-bold"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Expense Breakdown</h6>
-                        <div class="chart-container d-flex justify-content-center align-items-center">
-                            <canvas id="expenseChart"></canvas>
+                <!-- Charts Section -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card card-custom inner-home-box p-3 h-100 border-secondary">
+                            <h6 class="mb-3 text-white fw-bold"><i class="fa-solid fa-chart-pie me-2 text-primary"></i>Expense Breakdown</h6>
+                            <div class="chart-container d-flex justify-content-center align-items-center">
+                                <canvas id="expenseChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-custom inner-home-box p-3 h-100 border-secondary">
+                            <h6 class="mb-3 text-white fw-bold"><i class="fa-solid fa-chart-column me-2 text-success"></i>Income vs Expense</h6>
+                            <div class="chart-container">
+                                <canvas id="compareChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card card-custom p-3 h-100">
-                        <h6 class="mb-3 text-white fw-bold"><i class="fa-solid fa-chart-column me-2 text-success"></i>Income vs Expense</h6>
-                        <div class="chart-container">
-                            <canvas id="compareChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Recent Activity Table Section -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="m-0 text-white fw-bold fs-6"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Today's Activity</h6>
-                <a href="modules/transactions.php" class="btn btn-primary btn-sm px-3">
-                    <i class="fa-solid fa-list-check me-1"></i> View All
-                </a>
-            </div>
-
-            <div class="card card-custom p-3 mb-4">
-                <div class="table-responsive">
-                    <table class="table table-dark-custom table-hover align-middle m-0">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Title</th>
-                                <th>Category</th>
-                                <th>Method</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (count($recent_transactions) > 0): ?>
-                                <?php foreach ($recent_transactions as $t): ?>
-                                    <tr>
-                                        <td><?= date('d M Y', strtotime($t['created_at'])) ?></td>
-                                        <td><?= htmlspecialchars($t['description']) ?></td>
-                                        <td><span class="badge bg-secondary"><?= htmlspecialchars($t['category']) ?></span></td>
-                                        <td>
-                                            <span class="badge <?= ($t['payment_method'] ?? 'online') === 'cash' ? 'bg-warning text-dark' : 'bg-info text-dark' ?>">
-                                                <?= strtoupper($t['payment_method'] ?? 'online') ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge <?= $t['type'] === 'income' ? 'bg-success' : 'bg-danger' ?>">
-                                                <?= ucfirst($t['type']) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <strong class="<?= $t['type'] === 'income' ? 'text-success' : 'text-danger' ?>">
-                                                <?= $t['type'] === 'income' ? '+' : '-' ?> ₹<?= number_format($t['amount'], 2) ?>
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
+                <!-- Recent Activity Table Section -->
+                <div class="card card-custom inner-home-box p-3 border-secondary">
+                    <h6 class="mb-3 text-white fw-bold fs-6"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Today's Activity</h6>
+                    <div class="table-responsive">
+                        <table class="table table-dark-custom table-hover align-middle m-0">
+                            <thead>
                                 <tr>
-                                    <td colspan="6" class="text-center py-3 text-muted">No transactions recorded today.</td>
+                                    <th>Date</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Method</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
                                 </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php if (count($recent_transactions) > 0): ?>
+                                    <?php foreach ($recent_transactions as $t): ?>
+                                        <tr>
+                                            <td><?= date('d M Y', strtotime($t['created_at'])) ?></td>
+                                            <td><?= htmlspecialchars($t['description']) ?></td>
+                                            <td><span class="badge bg-secondary"><?= htmlspecialchars($t['category']) ?></span></td>
+                                            <td>
+                                                <span class="badge <?= ($t['payment_method'] ?? 'online') === 'cash' ? 'bg-warning text-dark' : 'bg-info text-dark' ?>">
+                                                    <?= strtoupper($t['payment_method'] ?? 'online') ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge <?= $t['type'] === 'income' ? 'bg-success' : 'bg-danger' ?>">
+                                                    <?= ucfirst($t['type']) ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <strong class="<?= $t['type'] === 'income' ? 'text-success' : 'text-danger' ?>">
+                                                    <?= $t['type'] === 'income' ? '+' : '-' ?> ₹<?= number_format($t['amount'], 2) ?>
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center py-3 text-muted">No transactions recorded today.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>
@@ -467,7 +472,110 @@ if ($current_hour >= 8 && $current_hour < 12) {
     <a href="modules/transactions.php"><i class="fa-solid fa-receipt"></i><span>History</span></a>
     <a href="modules/subscriptions.php"><i class="fa-solid fa-calendar-check"></i><span>Subs</span></a>
     <a href="modules/goals.php"><i class="fa-solid fa-bullseye"></i><span>Goals</span></a>
+    <a href="modules/loans.php"><i class="fa-solid fa-building-columns"></i><span>Loans</span></a>
     <a href="modules/analytics.php"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></a>
+    <a href="modules/pnl_statement.php"><i class="fa-solid fa-file-invoice-dollar"></i><span>P&L</span></a>
+</div>
+
+<!-- ================= ADD INCOME MODAL ================= -->
+<div class="modal fade" id="addIncomeModal" tabindex="-1" aria-labelledby="addIncomeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-custom border-secondary bg-dark text-white shadow-lg">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title fw-bold text-success" id="addIncomeModalLabel"><i class="fa-solid fa-circle-plus me-2"></i>Add Income</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="modules/add_transaction.php?type=income" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Title / Description *</label>
+                        <input type="text" name="description" class="form-control" placeholder="e.g. Salary, Freelance" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Amount (₹) *</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Category *</label>
+                        <input type="text" name="category" class="form-control" list="incomeCategories" placeholder="Type or select category" required>
+                        <datalist id="incomeCategories">
+                            <option value="Salary">
+                            <option value="Freelance">
+                            <option value="Pocket Money">
+                            <option value="Investments">
+                            <option value="Other Income">
+                        </datalist>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Payment Method *</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="online">UPI / Online Payment</option>
+                            <option value="cash">Cash Wallet</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Transaction Date *</label>
+                        <input type="date" name="created_at" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa-solid fa-check me-1"></i> Save Income</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================= ADD EXPENSE MODAL ================= -->
+<div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-custom border-secondary bg-dark text-white shadow-lg">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title fw-bold text-danger" id="addExpenseModalLabel"><i class="fa-solid fa-circle-minus me-2"></i>Add Expense</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="modules/add_transaction.php?type=expense" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Title / Description *</label>
+                        <input type="text" name="description" class="form-control" placeholder="e.g. Tea & Snacks, Dinner" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Amount (₹) *</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Category *</label>
+                        <input type="text" name="category" class="form-control" list="expenseCategories" placeholder="Type or select category" required>
+                        <datalist id="expenseCategories">
+                            <option value="Food & Snacks">
+                            <option value="Travel & Fuel">
+                            <option value="Bills & Utilities">
+                            <option value="Shopping">
+                            <option value="EMI & Loans">
+                            <option value="Other Expense">
+                        </datalist>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Payment Method *</label>
+                        <select name="payment_method" class="form-select" required>
+                            <option value="online">UPI / Online Payment</option>
+                            <option value="cash">Cash Wallet</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Transaction Date *</label>
+                        <input type="date" name="created_at" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-check me-1"></i> Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>

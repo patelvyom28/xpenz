@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const textColor = '#e6edf3';
     const gridColor = '#30363d';
 
-    // Expense Pie Chart
+    // Expense Pie / Doughnut Chart (Optimized Size & Legend)
     const expenseCtx = document.getElementById('expenseChart');
     if (expenseCtx && window.chartLabels && window.chartLabels.length > 0) {
         new Chart(expenseCtx, {
@@ -34,16 +34,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 labels: window.chartLabels,
                 datasets: [{
                     data: window.chartValues,
-                    backgroundColor: ['#f85149', '#06b6d4', '#eab308', '#a855f7', '#3b82f6', '#22c55e'],
-                    borderWidth: 0
+                    backgroundColor: ['#f85149', '#06b6d4', '#eab308', '#3b82f6', '#22c55e', '#a855f7'],
+                    borderWidth: 2,
+                    borderColor: '#161b22'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: textColor } }
-                }
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            boxWidth: 12,
+                            font: { size: 11 },
+                            padding: 12
+                        }
+                    }
+                },
+                cutout: '70%'
             }
         });
     }

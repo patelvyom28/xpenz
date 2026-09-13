@@ -138,6 +138,17 @@ $subscriptions = $stmt->fetchAll();
 
     <!-- Theme Switcher External JS Engine -->
     <script src="../assets/js/theme.js"></script>
+
+    <style>
+        /* Inner boxes hover lift effect */
+        .inner-form-box, .inner-table-box {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .inner-form-box:hover, .inner-table-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+    </style>
 </head>
 <body class="bg-dark text-white">
 
@@ -189,10 +200,6 @@ $subscriptions = $stmt->fetchAll();
 
         <!-- Scrollable Body Content -->
         <main class="dashboard-body-content">
-            <div class="d-flex justify-content-center align-items-center mb-4">
-                <h2 class="text-center m-0 w-100"><i class="fa-solid fa-calendar-check me-2 text-primary"></i>Subscriptions & Bills</h2>
-            </div>
-
             <!-- Session Flash Message -->
             <?php if (isset($_SESSION['msg'])): ?>
                 <div class="alert alert-<?= $_SESSION['msg_type']; ?> alert-dismissible fade show" role="alert">
@@ -205,97 +212,104 @@ $subscriptions = $stmt->fetchAll();
             <?php if ($error): ?><div class="alert alert-danger py-2"><?= htmlspecialchars($error) ?></div><?php endif; ?>
             <?php if ($success): ?><div class="alert alert-success py-2"><?= htmlspecialchars($success) ?></div><?php endif; ?>
 
-            <div class="row g-4">
-                <!-- Add Subscription Form -->
-                <div class="col-md-4">
-                    <div class="card card-custom p-3">
-                        <h5 class="mb-3 fw-bold">Add Subscription / Bill</h5>
-                        <form method="POST">
-                            <input type="hidden" name="add_sub" value="1">
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Service Title</label>
-                                <input type="text" name="title" class="form-control" placeholder="e.g. Netflix, Wi-Fi, Gym, Car EMI" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Amount (₹)</label>
-                                <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Billing Cycle</label>
-                                <select name="billing_cycle" class="form-select">
-                                    <option value="monthly">Monthly</option>
-                                    <option value="yearly">Yearly</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Next Due Date</label>
-                                <input type="date" name="due_date" class="form-control" required>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label">Category</label>
-                                <select name="category" class="form-select" required>
-                                    <option value="Entertainment">Entertainment (Netflix, Prime, Spotify)</option>
-                                    <option value="Wi-Fi & Broadband">Wi-Fi & Broadband</option>
-                                    <option value="Mobile Recharge">Mobile Recharge</option>
-                                    <option value="Gym & Fitness">Gym & Fitness</option>
-                                    <option value="EMI & Loans">EMI & Loans</option>
-                                    <option value="Rent & Utilities">Rent & Utilities</option>
-                                    <option value="Insurance Renewal">Insurance Renewal</option>
-                                    <option value="Other Bills">Other Bills</option>
-                                </select>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Add Record</button>
-                        </form>
-                    </div>
+            <!-- Outer Main Card Box -->
+            <div class="card card-custom p-4 mb-4">
+                <div class="d-flex justify-content-center align-items-center mb-4">
+                    <h4 class="m-0 fw-bold text-white"><i class="fa-solid fa-calendar-check me-2 text-primary"></i>Subscriptions & Bills</h4>
                 </div>
 
-                <!-- Subscriptions List -->
-                <div class="col-md-8">
-                    <div class="card card-custom p-3">
-                        <h5 class="mb-3 fw-bold">Active Subscriptions & Recurring Bills</h5>
-                        <div class="table-responsive">
-                            <table class="table table-dark-custom table-hover align-middle m-0">
-                                <thead>
-                                    <tr>
-                                        <th>Service</th>
-                                        <th>Category</th>
-                                        <th>Cycle</th>
-                                        <th>Next Due Date</th>
-                                        <th>Amount</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (count($subscriptions) > 0): ?>
-                                        <?php foreach ($subscriptions as $s): ?>
+                <div class="row g-4">
+                    <!-- Add Subscription Form (1st Inner Box with Hover) -->
+                    <div class="col-md-4">
+                        <div class="card card-custom inner-form-box p-3 border-secondary h-100">
+                            <h5 class="mb-3 fw-bold">Add Subscription / Bill</h5>
+                            <form method="POST">
+                                <input type="hidden" name="add_sub" value="1">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Service Title</label>
+                                    <input type="text" name="title" class="form-control" placeholder="e.g. Netflix, Wi-Fi, Gym, Car EMI" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Amount (₹)</label>
+                                    <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Billing Cycle</label>
+                                    <select name="billing_cycle" class="form-select">
+                                        <option value="monthly">Monthly</option>
+                                        <option value="yearly">Yearly</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Next Due Date</label>
+                                    <input type="date" name="due_date" class="form-control" required>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label">Category</label>
+                                    <select name="category" class="form-select" required>
+                                        <option value="Entertainment">Entertainment (Netflix, Prime, Spotify)</option>
+                                        <option value="Wi-Fi & Broadband">Wi-Fi & Broadband</option>
+                                        <option value="Mobile Recharge">Mobile Recharge</option>
+                                        <option value="Gym & Fitness">Gym & Fitness</option>
+                                        <option value="EMI & Loans">EMI & Loans</option>
+                                        <option value="Rent & Utilities">Rent & Utilities</option>
+                                        <option value="Insurance Renewal">Insurance Renewal</option>
+                                        <option value="Other Bills">Other Bills</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i> Add Record</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Subscriptions List (2nd Inner Box with Hover) -->
+                    <div class="col-md-8">
+                        <div class="card card-custom inner-table-box p-3 border-secondary h-100">
+                            <h5 class="mb-3 fw-bold">Active Subscriptions & Recurring Bills</h5>
+                            <div class="table-responsive">
+                                <table class="table table-dark-custom table-hover align-middle m-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th>Category</th>
+                                            <th>Cycle</th>
+                                            <th>Next Due Date</th>
+                                            <th>Amount</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (count($subscriptions) > 0): ?>
+                                            <?php foreach ($subscriptions as $s): ?>
+                                                <tr>
+                                                    <td class="fw-bold"><?= htmlspecialchars($s['title']) ?></td>
+                                                    <td><span class="badge bg-secondary"><?= htmlspecialchars($s['category']) ?></span></td>
+                                                    <td><span class="badge bg-info text-dark"><?= ucfirst($s['billing_cycle']) ?></span></td>
+                                                    <td><?= date('d M Y', strtotime($s['due_date'])) ?></td>
+                                                    <td class="text-danger fw-bold">₹<?= number_format($s['amount'], 2) ?></td>
+                                                    <td class="text-center">
+                                                        <a href="subscriptions.php?delete_id=<?= $s['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this subscription?');" title="Delete">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
                                             <tr>
-                                                <td class="fw-bold"><?= htmlspecialchars($s['title']) ?></td>
-                                                <td><span class="badge bg-secondary"><?= htmlspecialchars($s['category']) ?></span></td>
-                                                <td><span class="badge bg-info text-dark"><?= ucfirst($s['billing_cycle']) ?></span></td>
-                                                <td><?= date('d M Y', strtotime($s['due_date'])) ?></td>
-                                                <td class="text-danger fw-bold">₹<?= number_format($s['amount'], 2) ?></td>
-                                                <td class="text-center">
-                                                    <a href="subscriptions.php?delete_id=<?= $s['id']; ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this subscription?');" title="Delete">
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </a>
+                                                <td colspan="6" class="text-center py-4 text-muted">
+                                                    <i class="fa-solid fa-calendar-xmark fa-2x mb-2 d-block"></i> No subscriptions or recurring bills added yet.
                                                 </td>
                                             </tr>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted">
-                                                <i class="fa-solid fa-calendar-xmark fa-2x mb-2 d-block"></i> No subscriptions or recurring bills added yet.
-                                            </td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -382,13 +396,15 @@ $subscriptions = $stmt->fetchAll();
     </div>
 </div>
 
-<!-- Mobile Bottom Navigation Bar -->
+<!-- Mobile Fixed Bottom Navigation Bar -->
 <div class="mobile-bottom-nav d-md-none">
-    <a href="../home.php"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="../home.php" class="active"><i class="fa-solid fa-house"></i><span>Home</span></a>
     <a href="transactions.php"><i class="fa-solid fa-receipt"></i><span>History</span></a>
-    <a href="subscriptions.php" class="active"><i class="fa-solid fa-calendar-check"></i><span>Subs</span></a>
+    <a href="subscriptions.php"><i class="fa-solid fa-calendar-check"></i><span>Subs</span></a>
     <a href="goals.php"><i class="fa-solid fa-bullseye"></i><span>Goals</span></a>
+    <a href="loans.php"><i class="fa-solid fa-building-columns"></i><span>Loans</span></a>
     <a href="analytics.php"><i class="fa-solid fa-chart-pie"></i><span>Analytics</span></a>
+    <a href="pnl_statement.php"><i class="fa-solid fa-file-invoice-dollar"></i><span>P&L</span></a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

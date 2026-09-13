@@ -248,7 +248,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .chart-container {
-    height: 220px;
+    height: 240px;
     position: relative;
     width: 100%;
 }
@@ -299,18 +299,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border: 1px solid #f85149 !important;
 }
 
-/* Mobile Adjustments */
+/* Mobile Adjustments & Scrollable Bottom Navigation */
 @media (max-width: 768px) {
     .main-content-wrapper {
         margin-left: 0 !important;
     }
 
     body {
-        padding-bottom: 60px;
+        padding-bottom: 70px;
     }
 
     .dashboard-body-content {
         padding: 14px !important;
+        padding-bottom: 90px !important;
     }
 
     .welcome-title {
@@ -336,22 +337,29 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
     .mobile-bottom-nav {
         display: flex !important;
+        overflow-x: auto;
+        white-space: nowrap;
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
         background-color: var(--nav-bottom-bg);
         border-top: 1px solid var(--border-color);
-        z-index: 1030;
-        justify-content: space-around;
-        padding: 8px 0;
+        z-index: 1050;
+        padding: 6px 4px;
+    }
+
+    .mobile-bottom-nav::-webkit-scrollbar {
+        display: none;
     }
 
     .mobile-bottom-nav a {
+        flex: 0 0 auto;
         color: var(--text-subtle);
         text-decoration: none;
         font-size: 0.7rem;
         text-align: center;
+        padding: 4px 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -362,7 +370,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 
     .mobile-bottom-nav i {
-        font-size: 1.2rem;
+        font-size: 1rem;
         display: block;
         margin-bottom: 2px;
     }
@@ -374,34 +382,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     }
 }
 
-/* Center align all module main titles */
-.dashboard-body-content > .d-flex > h2,
-.dashboard-body-content > h2 {
-    text-align: center !important;
-    width: 100% !important;
-    display: block !important;
+/* Global Dark Theme Label & Heading Readability Fix */
+.form-label, 
+.card label, 
+.card-custom label,
+.text-subtle {
+    color: #e6edf3 !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
 }
 
-.dashboard-body-content > .d-flex {
-    justify-content: center !important;
-}
-
-/* 1. Center align all main page headers/titles across the application */
-.dashboard-body-content > .d-flex > h2,
-.dashboard-body-content > h2 {
-    text-align: center !important;
-    width: 100% !important;
-    display: block !important;
-}
-
-.dashboard-body-content > .d-flex {
-    justify-content: center !important;
-    position: relative !important;
-}
-
-/* 2. Ensure uniform styling for card boxes and filter bars */
-.card.card-custom {
-    background-color: var(--card-bg, #1a1d20) !important;
-    border: 1px solid var(--border-color, #2c3034) !important;
-    border-radius: 0.75rem !important;
+.card-custom h2, 
+.card-custom h3, 
+.card-custom h4, 
+.card-custom h5,
+.card-custom h6 {
+    color: #ffffff !important;
 }
