@@ -194,7 +194,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
             </div>
 
             <div class="ms-auto d-flex align-items-center gap-3">
-                <!-- Google-Style Profile Dropdown Menu -->
+                <!-- Google-Style Profile Dropdown Menu with Settings Added -->
                 <div class="dropdown">
                     <span class="badge bg-primary rounded-circle avatar-badge dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
                         <?= htmlspecialchars($initials) ?>
@@ -206,7 +206,9 @@ if ($current_hour >= 8 && $current_hour < 12) {
                             <small class="text-subtle"><?= htmlspecialchars($user_email) ?></small>
                         </li>
                         <li><button type="button" class="dropdown-item rounded-2 text-white py-2 mb-1 bg-transparent border-0 w-100 text-start" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="fa-solid fa-user-pen me-2 text-primary"></i> Edit Profile & Budget</button></li>
-                        <li><button type="button" class="dropdown-item rounded-2 text-white py-2 mb-2 bg-transparent border-0 w-100 text-start" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fa-solid fa-key me-2 text-warning"></i> Change Password</button></li>
+                        <li><button type="button" class="dropdown-item rounded-2 text-white py-2 mb-1 bg-transparent border-0 w-100 text-start" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fa-solid fa-key me-2 text-warning"></i> Change Password</button></li>
+                        <!-- Added Settings Option Here -->
+                        <li><a class="dropdown-item rounded-2 text-white py-2 mb-2" href="modules/settings.php"><i class="fa-solid fa-gear me-2 text-info"></i> Settings</a></li>
                         <li><hr class="dropdown-divider border-secondary my-1"></li>
                         <li><a class="dropdown-item rounded-2 text-danger py-2 mt-1" href="auth/logout.php"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a></li>
                     </ul>

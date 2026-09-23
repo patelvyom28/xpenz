@@ -1,35 +1,31 @@
 <?php
-// cron/send_reminders.php
 session_start();
 date_default_timezone_set('Asia/Kolkata');
 require_once __DIR__ . '/../config/db.php';
 
-// Include PHPMailer classes manually or via autoload if present
-require_once __DIR__ . '/../PHPMailer/PHPMailer.php';
-require_once __DIR__ . '/../PHPMailer/SMTP.php';
-require_once __DIR__ . '/../PHPMailer/Exception.php';
+// Include PHPMailer classes from src folder
+require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
+require_once __DIR__ . '/../PHPMailer/src/SMTP.php';
+require_once __DIR__ . '/../PHPMailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Helper function to send Email via PHPMailer
+// Helper function to send Email via PHPMailer with Error Logging
 function sendUserEmail($to_email, $to_name, $subject, $body_html) {
     $mail = new PHPMailer(true);
     try {
-        // Server settings
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';                     
         $mail->SMTPAuth   = true;                     
         $mail->Username   = 'vyompatel996@gmail.com';             
-        $mail->Password   = 'gbwkpssijouxbggg';                
+        $mail->Password   = 'gbwkpssijouxbggg';                    
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;            
         $mail->Port       = 587;                                    
 
-        // Recipients
         $mail->setFrom('vyompatel996@gmail.com', 'XPenz Smart Wallet');
         $mail->addAddress($to_email, $to_name);
 
-        // Content
         $mail->isHTML(true);
         $mail->Subject = $subject;
         $mail->Body    = $body_html;
@@ -37,6 +33,8 @@ function sendUserEmail($to_email, $to_name, $subject, $body_html) {
         $mail->send();
         return true;
     } catch (Exception $e) {
+        $log_error = "[" . date('Y-m-d H:i:s') . "] Email Error to $to_email: " . $mail->ErrorInfo . "\n";
+        file_put_contents(__DIR__ . '/../sms_logs.txt', $log_error, FILE_APPEND);
         return false;
     }
 }
@@ -78,7 +76,6 @@ function sendUserSMS($mobile_number, $message) {
     $err = curl_error($curl);
     curl_close($curl);
 
-    // Also log to sms_logs.txt for debugging
     $log_entry = "[" . date('Y-m-d H:i:s') . "] To: $mobile_number | Msg: $message | Res: " . ($response ?: $err) . "\n";
     file_put_contents(__DIR__ . '/../sms_logs.txt', $log_entry, FILE_APPEND);
 
@@ -96,14 +93,14 @@ foreach ($users as $user) {
     $u_phone = $user['phone'] ?? ''; 
 
     // 1. Check Subscriptions Due Soon
-    $sub_stmt = $pdo->prepare("SELECT * FROM subscriptions WHERE user_id = :uid AND next_payment_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 2 DAY)");
+    $sub_stmt = $pdo->prepare("SELECT * FROM subscriptions WHERE user_id = :uid AND due_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 2 DAY) AND status = 'active'");
     $sub_stmt->execute([':uid' => $uid]);
     $subscriptions = $sub_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($subscriptions as $sub) {
-        $sub_name = $sub['name'];
+        $sub_name = $sub['title'];
         $sub_amt = $sub['amount'];
-        $due_date = $sub['next_payment_date'];
+        $due_date = $sub['due_date'];
 
         $subject = "⚠️ Subscription Due Reminder: {$sub_name}";
         $html = "<p>Hello <b>{$u_name}</b>,</p><p>Your subscription <b>{$sub_name}</b> of <b>₹{$sub_amt}</b> is due on <b>{$due_date}</b>. Please keep your balance ready.</p><p>- Team XPenz</p>";
@@ -113,20 +110,25 @@ foreach ($users as $user) {
     }
 
     // 2. Check Loans / EMI Due Soon
-    $loan_stmt = $pdo->prepare("SELECT * FROM loans WHERE user_id = :uid AND next_emi_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY)");
+    $loan_stmt = $pdo->prepare("SELECT * FROM loans_insurance WHERE user_id = :uid AND type IN ('loan', 'emi')");
     $loan_stmt->execute([':uid' => $uid]);
     $loans = $loan_stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    $current_day = (int)date('d');
     foreach ($loans as $loan) {
         $loan_title = $loan['title'];
-        $emi_amt = $loan['emi_amount'];
-        $emi_date = $loan['next_emi_date'];
+        $emi_amt = $loan['monthly_installment'];
+        $due_day = (int)$loan['due_day'];
 
-        $subject = "🚨 EMI / Loan Payment Reminder: {$loan_title}";
-        $html = "<p>Hello <b>{$u_name}</b>,</p><p>Your EMI for <b>{$loan_title}</b> amounting to <b>₹{$emi_amt}</b> is coming up on <b>{$emi_date}</b>.</p><p>- Team XPenz</p>";
+        if ($due_day >= $current_day && $due_day <= ($current_day + 3)) {
+            $emi_date = date('Y-m-') . str_pad($due_day, 2, '0', STR_PAD_LEFT);
 
-        if (!empty($u_email)) sendUserEmail($u_email, $u_name, $subject, $html);
-        if (!empty($u_phone)) sendUserSMS($u_phone, "XPenz Alert: EMI of Rs.{$emi_amt} for {$loan_title} is due on {$emi_date}.");
+            $subject = "🚨 EMI / Loan Payment Reminder: {$loan_title}";
+            $html = "<p>Hello <b>{$u_name}</b>,</p><p>Your EMI for <b>{$loan_title}</b> amounting to <b>₹{$emi_amt}</b> is coming up on <b>{$emi_date}</b>.</p><p>- Team XPenz</p>";
+
+            if (!empty($u_email)) sendUserEmail($u_email, $u_name, $subject, $html);
+            if (!empty($u_phone)) sendUserSMS($u_phone, "XPenz Alert: EMI of Rs.{$emi_amt} for {$loan_title} is due on {$emi_date}.");
+        }
     }
 
     // 3. Daily Expense Logging Reminder

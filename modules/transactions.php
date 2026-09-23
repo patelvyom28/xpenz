@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     exit();
 }
 
-// Handle Inline Transaction Update from Popup Modal
+// Handle Inline Transaction Update from Popup Modal (with optional Receipt Upload)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_transaction_modal'])) {
     $trans_id = intval($_POST['trans_id']);
     $type = trim($_POST['type']);
@@ -74,17 +74,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_transaction_mo
         $_SESSION['msg'] = "Please fill in all required fields correctly.";
         $_SESSION['msg_type'] = "danger";
     } else {
-        $up_t = $pdo->prepare("UPDATE transactions SET type = :type, description = :desc, amount = :amt, category = :cat, payment_method = :pm, created_at = :cdt WHERE id = :id AND user_id = :uid");
-        $up_t->execute([
-            ':type' => $type,
-            ':desc' => $description,
-            ':amt' => $amount,
-            ':cat' => $category,
-            ':pm' => $payment_method,
-            ':cdt' => $created_at,
-            ':id' => $trans_id,
-            ':uid' => $user_id
-        ]);
+        $receiptName = null;
+        // Check if new receipt image is uploaded
+        if (isset($_FILES['receipt']) && $_FILES['receipt']['error'] == 0) {
+            $uploadDir = '../uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $fileExt = pathinfo($_FILES['receipt']['name'], PATHINFO_EXTENSION);
+            $receiptName = 'receipt_' . time() . '_' . rand(1000, 9999) . '.' . $fileExt;
+            move_uploaded_file($_FILES['receipt']['tmp_name'], $uploadDir . $receiptName);
+
+            $up_t = $pdo->prepare("UPDATE transactions SET type = :type, description = :desc, amount = :amt, category = :cat, payment_method = :pm, created_at = :cdt, receipt_image = :rcpt WHERE id = :id AND user_id = :uid");
+            $up_t->execute([
+                ':type' => $type, ':desc' => $description, ':amt' => $amount, ':cat' => $category,
+                ':pm' => $payment_method, ':cdt' => $created_at, ':rcpt' => $receiptName, ':id' => $trans_id, ':uid' => $user_id
+            ]);
+        } else {
+            $up_t = $pdo->prepare("UPDATE transactions SET type = :type, description = :desc, amount = :amt, category = :cat, payment_method = :pm, created_at = :cdt WHERE id = :id AND user_id = :uid");
+            $up_t->execute([
+                ':type' => $type, ':desc' => $description, ':amt' => $amount, ':cat' => $category,
+                ':pm' => $payment_method, ':cdt' => $created_at, ':id' => $trans_id, ':uid' => $user_id
+            ]);
+        }
         $_SESSION['msg'] = "Transaction updated successfully!";
         $_SESSION['msg_type'] = "success";
     }
@@ -250,6 +262,16 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
             <div class="card card-custom p-4 mb-4 border-secondary">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                     <h4 class="m-0 fw-bold text-white"><i class="fa-solid fa-list-check me-2 text-primary"></i>Transactions History</h4>
+                    
+                    <!-- Export Action Buttons -->
+                    <div class="d-flex gap-2">
+                        <button onclick="exportToExcel()" class="btn btn-success btn-sm">
+                            <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+                        </button>
+                        <button onclick="exportToPDF()" class="btn btn-danger btn-sm">
+                            <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Filter & Search Box (Inner Box) -->
@@ -294,7 +316,7 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
                 <!-- Transactions Table Box (Inner Box) -->
                 <div class="card card-custom inner-trans-box p-3 border-secondary">
                     <div class="table-responsive">
-                        <table class="table table-dark-custom table-hover align-middle m-0">
+                        <table class="table table-dark-custom table-hover align-middle m-0" id="transactionsTable">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -303,6 +325,7 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
                                     <th>Method</th>
                                     <th>Type</th>
                                     <th>Amount</th>
+                                    <th>Receipt</th>
                                     <th class="text-center">Action</th>
                                 </tr>
                             </thead>
@@ -328,6 +351,15 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
                                                     <?= $t['type'] === 'income' ? '+' : '-' ?> ₹<?= number_format($t['amount'], 2) ?>
                                                 </strong>
                                             </td>
+                                            <td>
+                                                <?php if (!empty($t['receipt_image'])): ?>
+                                                    <a href="../uploads/<?= htmlspecialchars($t['receipt_image']) ?>" target="_blank" class="btn btn-sm btn-outline-info" title="View Receipt">
+                                                        <i class="fa-solid fa-image"></i>
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="text-muted small">None</span>
+                                                <?php endif; ?>
+                                            </td>
                                             <td class="text-center">
                                                 <!-- Edit Button Triggers Popup Modal -->
                                                 <button type="button" class="btn btn-sm btn-warning me-1 edit-btn" 
@@ -350,7 +382,7 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="7" class="text-center py-4 text-muted">No transactions found matching your filter criteria.</td>
+                                        <td colspan="8" class="text-center py-4 text-muted">No transactions found matching your filter criteria.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -364,15 +396,15 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
 
 <!-- ================= MODAL POPUPS ================= -->
 
-<!-- 1. Edit Transaction Popup Modal -->
+<!-- 1. Edit Transaction Popup Modal (with Receipt Upload) -->
 <div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-custom border-secondary bg-dark text-white shadow-lg">
             <div class="modal-header border-bottom border-secondary">
-                <h5 class="modal-title fw-bold text-warning" id="editTransactionModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Transaction</h5>
+                <h5 class="modal-title fw-bold text-warning" id="editTransactionModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Transaction & Receipt</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="modal-body">
                     <input type="hidden" name="update_transaction_modal" value="1">
                     <input type="hidden" name="trans_id" id="modal_trans_id">
@@ -406,6 +438,11 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
                             <option value="online">UPI / Online Payment</option>
                             <option value="cash">Cash Wallet</option>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small text-subtle">Upload Receipt / Screenshot (Optional)</label>
+                        <input type="file" name="receipt" accept="image/*" class="form-control">
                     </div>
 
                     <div class="mb-3">
@@ -543,6 +580,41 @@ $categories = $cat_stmt->fetchAll(PDO::FETCH_COLUMN);
             editModal.show();
         });
     });
+
+    // Export Table to Excel (CSV format)
+    function exportToExcel() {
+        let tableHTML = document.getElementById("transactionsTable").outerHTML;
+        let filename = "Xpenz_Transactions_Report.xls";
+        let downloadLink = document.createElement("a");
+        downloadLink.href = 'data:application/vnd.ms-excel,' + encodeURIComponent(tableHTML);
+        downloadLink.download = filename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
+
+    // Export Table to PDF (Print preview dialog)
+    function exportToPDF() {
+        let printWindow = window.open('', '', 'height=700,width=900');
+        printWindow.document.write('<html><head><title>Transactions Report - XPenz</title>');
+        printWindow.document.write('<style>body { font-family: Arial, sans-serif; color: #333; padding: 20px; } h2 { text-align: center; color: #4f46e5; } table { width: 100%; border-collapse: collapse; margin-top: 20px; } th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; font-size: 14px; } th { background-color: #f3f4f6; }</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write('<h2>XPenz - Transactions History Report</h2>');
+        
+        // Clone table to clean up action/receipt columns before printing
+        let tableClone = document.getElementById("transactionsTable").cloneNode(true);
+        for (let row of tableClone.rows) {
+            if(row.cells.length > 7) { row.deleteCell(7); } // Remove Action column
+        }
+        printWindow.document.write(tableClone.outerHTML);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
+    }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

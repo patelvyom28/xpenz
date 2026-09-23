@@ -1,5 +1,5 @@
 -- XPenz Master Database Schema
--- Updated with Mobile Phone Binding and Payment Method Attributes
+-- Updated with Mobile Phone Binding, Payment Method Attributes, and User Settings
 
 CREATE DATABASE IF NOT EXISTS `xpenz_db`;
 USE `xpenz_db`;
@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `phone` VARCHAR(15) DEFAULT NULL,
   `password` VARCHAR(255) NOT NULL,
   `monthly_budget` DECIMAL(10,2) DEFAULT 0.00,
+  `currency` VARCHAR(10) DEFAULT 'INR',
+  `date_format` VARCHAR(20) DEFAULT 'dd-MM-yyyy',
+  `time_format` VARCHAR(20) DEFAULT '12-Hour',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
