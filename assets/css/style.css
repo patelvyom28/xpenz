@@ -399,3 +399,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .card-custom h6 {
     color: #ffffff !important;
 }
+
+/* CASH WALLET (YELLOW) & BANK/ONLINE (BLUE) CARD BORDERS    */
+.cash-wallet-card {
+    border: 1.5px solid #ffc107 !important; /* Vibrant Yellow */
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.15) !important;
+}
+
+.online-wallet-card {
+    border: 1.5px solid #0d6efd !important; /* Vibrant Blue */
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.15) !important;
+}

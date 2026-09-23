@@ -266,7 +266,7 @@ if ($current_hour >= 8 && $current_hour < 12) {
                     <?php endif; ?>
                 </div>
 
-                <!-- Overview Summary Cards (Inner Boxes with Hover) -->
+                <!-- Overview Summary Cards (Inner Boxes with Hover and Yellow/Blue Borders) -->
                 <div class="summary-grid mb-4">
                     <div class="card card-custom inner-home-box card-income-border p-3 border-secondary">
                         <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">Total Income</small>
@@ -276,11 +276,11 @@ if ($current_hour >= 8 && $current_hour < 12) {
                         <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">Total Expense</small>
                         <h4 class="text-danger mt-2 mb-0 fw-bold">₹<?= number_format($total_expense, 2); ?></h4>
                     </div>
-                    <div class="card card-custom inner-home-box border-secondary border-start border-3 border-warning p-3">
+                    <div class="card card-custom inner-home-box cash-wallet-card p-3">
                         <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">💵 Cash Wallet</small>
                         <h4 class="text-warning mt-2 mb-0 fw-bold">₹<?= number_format($cash_balance, 2); ?></h4>
                     </div>
-                    <div class="card card-custom inner-home-box border-secondary border-start border-3 border-info p-3">
+                    <div class="card card-custom inner-home-box online-wallet-card p-3">
                         <small class="text-subtle text-uppercase fw-bold" style="font-size: 0.7rem;">📱 Bank / Online</small>
                         <h4 class="text-info mt-2 mb-0 fw-bold">₹<?= number_format($online_balance, 2); ?></h4>
                     </div>
